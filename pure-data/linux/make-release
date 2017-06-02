@@ -1,0 +1,36 @@
+#!/bin/sh
+#usage: ./make-release <version>
+if test x$1 == x
+then
+   echo usage: ./make-release 0.34-0 or 0.35-0test11 or ...
+   exit 1
+fi
+
+# set -x
+cd ..
+ROOTDIR=`pwd`
+find . \( -name ".[azA-Z]*" \! -name ".git" \
+    -o -name "core" -o -name "*.cache" -o -name "*.orig" \) \
+    -ok rm -r {} \;
+
+cd src
+sh ../linux/detab-src.sh
+cd ../tcl
+sh ../linux/detab-src.sh
+cd ../extra
+sh ../linux/detab-src.sh
+cd ../linux
+./make-tmp-copy pd-$1
+cd ..
+TMPPD=/tmp/pd-$1
+mkdir $TMPPD/obj $TMPPD/bin
+cd $TMPPD/src
+make -f makefile.gnu distclean
+rm -rf autom4te.cache
+rm -f *.pd
+cd /tmp
+tar czf pd-$1.src.tar.gz pd-$1
+rm -rf $TMPPD
+mv -i pd-$1.src.tar.gz $ROOTDIR/dist/ && \
+ls -l $ROOTDIR/dist/pd-$1.src.tar.gz
+
