@@ -1,0 +1,24 @@
+#N canvas 820 236 450 300 10;
+#X obj 78 98 PDFirmata;
+#X msg 252 47 devices;
+#X msg 68 54 pinMode 13 OUTPUT;
+#X msg 213 216 digitalWrite 13 \$1;
+#X obj 213 88 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 213 108 metro 100;
+#X floatatom 273 87 5 0 0 0 - - -, f 5;
+#X obj 213 139 f;
+#X obj 247 137 + 1;
+#X obj 213 171 % 2;
+#X msg 251 19 open (port number);
+#X connect 1 0 0 0;
+#X connect 2 0 0 0;
+#X connect 3 0 0 0;
+#X connect 4 0 5 0;
+#X connect 5 0 7 0;
+#X connect 6 0 5 1;
+#X connect 7 0 8 0;
+#X connect 7 0 9 0;
+#X connect 8 0 7 1;
+#X connect 9 0 3 0;
+#X connect 10 0 0 0;
