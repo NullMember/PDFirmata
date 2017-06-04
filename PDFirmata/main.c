@@ -140,11 +140,14 @@ void pdfirmata_onList(t_pdfirmata *x, t_symbol *s, t_int argc, t_atom *argv){
 }
 
 void pdfirmata_onRawData(t_pdfirmata *x, t_floatarg f){
+    if(f == 0xF7){ //sysex end
+        x->rawType = 0;
+        decSysex(x);
+    }
     if(x->rawType == 2){ //analog read buffer and output
         x->buffer[x->rawCounter] = f;
         x->rawCounter++;
         if(x->rawCounter == 3){
-            post("Serial");
             SETSYMBOL(&x->abuffer[0], gensym("Analog"));
             SETFLOAT(&x->abuffer[1], x->buffer[0] - 0xE0);
             SETFLOAT(&x->abuffer[2], x->buffer[1] + (x->buffer[2] * 128));
@@ -161,12 +164,6 @@ void pdfirmata_onRawData(t_pdfirmata *x, t_floatarg f){
     }
     if(f == 0xF0){ //sysex begin
         x->rawType = 1;
-        post("sysex");
-    }
-    else if(f == 0xF7){ //sysex end
-        post("sysexend");
-        x->rawType = 0;
-        decSysex(x);
     }
     else if((f >= 224) && (f <= 239)){ //analog read
         x->buffer[x->rawCounter] = f;
@@ -678,10 +675,8 @@ void stepperStep(t_pdfirmata *x, t_symbol *s, t_int argc, t_atom *argv){
 }
 
 void decSysex(t_pdfirmata *x){
-    post("decsysex");
     if(x->buffer[0] == 0x6E){
-        post("pinMode");
-        SETSYMBOL(&x->abuffer[0], gensym("pinMode"));
+        SETSYMBOL(&x->abuffer[0], gensym("Pin"));
         SETFLOAT(&x->abuffer[1], x->buffer[1]);
         if(x->buffer[2] == 0) SETSYMBOL(&x->abuffer[2], gensym("INPUT"));
         else if(x->buffer[2] == 1) SETSYMBOL(&x->abuffer[2], gensym("OUTPUT"));
@@ -695,12 +690,14 @@ void decSysex(t_pdfirmata *x){
         else if(x->buffer[2] == 9) SETSYMBOL(&x->abuffer[2], gensym("ENCODER"));
         else if(x->buffer[2] == 10) SETSYMBOL(&x->abuffer[2], gensym("SERIAL"));
         else if(x->buffer[2] == 11) SETSYMBOL(&x->abuffer[2], gensym("PULLUP"));
-        SETFLOAT(&x->abuffer[3], x->buffer[3] + (x->buffer[4] * 128));
+        if(x->rawCounter == 4) SETFLOAT(&x->abuffer[3], x->buffer[3]);
+        if(x->rawCounter == 5) SETFLOAT(&x->abuffer[3], x->buffer[3] + (x->buffer[4] * 128));
+        if(x->rawCounter == 6) SETFLOAT(&x->abuffer[3], x->buffer[3] + (x->buffer[4] * 128) + (x->buffer[5] * 16384));
+        if(x->rawCounter == 7) SETFLOAT(&x->abuffer[3], x->buffer[3] + (x->buffer[4] * 128) + (x->buffer[5] * 16384) + (x->buffer[6] * 2097152));
         outlet_list(x->decOut, &s_list, 4, x->abuffer);
     }
     else if(x->buffer[0] == 0x60){
-        post("Serial");
-        SETSYMBOL(&x->abuffer[0], gensym("serialReply"));
+        SETSYMBOL(&x->abuffer[0], gensym("Serial"));
         if(x->buffer[1] == 0x40) SETSYMBOL(&x->abuffer[1], gensym("HW0"));
         else if(x->buffer[1] == 0x41) SETSYMBOL(&x->abuffer[1], gensym("HW1"));
         else if(x->buffer[1] == 0x42) SETSYMBOL(&x->abuffer[1], gensym("HW2"));
@@ -725,8 +722,7 @@ void decSysex(t_pdfirmata *x){
         outlet_list(x->decOut, &s_list, ((x->rawCounter - 2) / 2) + 2, x->abuffer);
     }
     else if (x->buffer[0] == 0x77){
-        post("I2C");
-        SETSYMBOL(&x->abuffer[0], gensym("I2CReply"));
+        SETSYMBOL(&x->abuffer[0], gensym("I2C"));
         uint8_t i = 1;
         while(i < ((x->rawCounter - 1) / 2)){
             SETFLOAT(&x->abuffer[i], (x->buffer[(i * 2) - 1] + (x->buffer[i * 2] * 128)));
@@ -735,7 +731,6 @@ void decSysex(t_pdfirmata *x){
         outlet_list(x->decOut, &s_list, ((x->rawCounter - 1) / 2) + 1, x->abuffer);
     }
     else if (x->buffer[0] == 0x61){
-        post("Encoder");
         SETSYMBOL(&x->abuffer[0], gensym("Encoder"));
         uint8_t i = 0;
         while(i < ((x->rawCounter - 1) / 5)){
