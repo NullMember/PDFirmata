@@ -21,5 +21,6 @@ PDFirmata is Firmata Client for Miller S. Puckette's Pure Data. PDFirmata suppor
 
 # PDFirmata Instructions:
 
-If you are using Pure Data Vanilla, please install comport external (You can use Help-Find externals).
-Most of features are implemented but not documented (like I2C, Stepper, Serial etc.)
+If you are using Pure Data Vanilla, please install comport external (You can use Help-Find externals). 
+Most of features are implemented but not documented (like I2C, Stepper, Serial etc.). 
+You can find some usage notes in the PDFirmata.pd
