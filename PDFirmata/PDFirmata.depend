@@ -1,9 +1,0 @@
-# depslib dependency file v1.0
-1496357448 source:d:\users\mrbil\desktop\pdfirmata\pdfirmata\main.c
-	"m_pd.h"
-
-1496261543 d:\users\mrbil\desktop\pdfirmata\pdfirmata\m_pd.h
-	<stddef.h>
-	<stdint.h>
-	<stdio.h>
-

@@ -1,8 +1,8 @@
 # PDFirmata
 Firmata Client for Pure Data
 
-# Work in Progress
-Warning! This external still work in progress. Use at your own risk.
+# Current state
+As of 06.2020 this external almost completely rewritten. Included pd-lib-builder and Makefile for compiling external without headaches. New stepper protocol is not implemented yet but in TODO list for pdfirmata version 2 stable release (planned to release before 07.2020). I will provide binaries for all architectures in next days.
 
 # Description
 
@@ -24,3 +24,9 @@ PDFirmata is Firmata Client for Miller S. Puckette's Pure Data. PDFirmata suppor
 If you are using Pure Data Vanilla, please install comport external (You can use Help-Find externals). 
 Most of features are implemented but not documented (like I2C, Stepper, Serial etc.). 
 You can find some usage notes in the PDFirmata.pd
+
+# Compiling from source
+
+## For Windows target
+
+Check [libs](libs/) folder before compiling this project.
