@@ -12,7 +12,7 @@ class.sources = pdfirmata.c
 datafiles = README.md LICENSE
 
 PDINCLUDEDIR=pure-data/src/
-PDBINDIR=libs/
+PDBINDIR=bin/
 
 # include Makefile.pdlibbuilder from submodule directory 'pd-lib-builder'
 PDLIBBUILDER_DIR=pd-lib-builder/

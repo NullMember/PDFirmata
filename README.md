@@ -27,6 +27,8 @@ You can find some usage notes in the PDFirmata.pd
 
 # Compiling from source
 
-## For Windows target
+If you're cloning this repository with git command line tool don't forget to use `--recursive` option to fetch all submodules.
 
-Check [libs](libs/) folder before compiling this project.
+## For Windows targets
+
+Check [bin](bin/) folder before compiling this project.
