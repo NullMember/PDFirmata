@@ -592,7 +592,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
             }
         }
         /* servo reply  */
-        if(strcmp(cmdName, "reply")){
+        if(strcmp(cmdName, "reply") == 0){
             if(argc > 3){
                 int addr = atom_getfloatarg(1, argc, argv);
                 int registerAddr = atom_getfloatarg(2, argc, argv);
@@ -614,7 +614,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 free(buffer);
             }
         }
-        if(strcmp(cmdName, "delay")){
+        if(strcmp(cmdName, "delay") == 0){
             if(argc > 1){
                 int delay = atom_getfloatarg(1, argc, argv);
                 uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
@@ -627,7 +627,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 free(buffer);
             }
         }
-        if(strcmp(cmdName, "config")){
+        if(strcmp(cmdName, "config") == 0){
             if(argc > 1){
                 uint8_t * buffer = (uint8_t *)malloc((argc + 3) * sizeof(uint8_t));
                 buffer[0] = 0xF0;
@@ -648,7 +648,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
 void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
     if(argc > 0){
         const char * cmdName = atom_getsymbolarg(0, argc, argv)->s_name;
-        if(strcmp(cmdName, "config")){
+        if(strcmp(cmdName, "config") == 0){
             if(argc > 3){
                 int pin = atom_getfloatarg(1, argc, argv);
                 int minPulse = atom_getfloatarg(2, argc, argv);
@@ -666,7 +666,7 @@ void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 free(buffer);
             }
         }
-        if(strcmp(cmdName, "write")){
+        if(strcmp(cmdName, "write") == 0){
             if(argc > 2){
                 int pin = atom_getfloatarg(1, argc, argv);
                 int value = atom_getfloatarg(2, argc, argv);
@@ -699,7 +699,7 @@ void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
 void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
     if(argc > 0){
         const char * cmdName = atom_getsymbolarg(0, argc, argv)->s_name;
-        if(strcmp(cmdName, "attach")){
+        if(strcmp(cmdName, "attach") == 0){
             if(argc > 3){
                 int encoder = atom_getfloatarg(1, argc, argv);
                 int pinA = atom_getfloatarg(2, argc, argv);
@@ -716,7 +716,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 free(buffer);
             }
         }
-        if(strcmp(cmdName, "read")){
+        if(strcmp(cmdName, "read") == 0){
             if(argc > 1){
                 int encoder = atom_getfloatarg(1, argc, argv);
                 uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
@@ -729,7 +729,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 free(buffer);
             }
         }
-        if(strcmp(cmdName, "readAll")){
+        if(strcmp(cmdName, "readAll") == 0){
             uint8_t * buffer = (uint8_t *)malloc(4 * sizeof(uint8_t));
             buffer[0] = 0xF0;
             buffer[1] = 0x61;
@@ -738,7 +738,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
             writeBuffer(x, buffer, 4);
             free(buffer);
         }
-        if(strcmp(cmdName, "reset")){
+        if(strcmp(cmdName, "reset") == 0){
             if(argc > 1){
                 int encoder = atom_getfloatarg(1, argc, argv);
                 uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
@@ -751,7 +751,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 free(buffer);
             }
         }
-        if(strcmp(cmdName, "report")){
+        if(strcmp(cmdName, "report") == 0){
             if(argc > 1){
                 int enable = atom_getfloatarg(1, argc, argv);
                 uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
@@ -764,7 +764,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 free(buffer);
             }
         }
-        if(strcmp(cmdName, "detach")){
+        if(strcmp(cmdName, "detach") == 0){
             if(argc > 1){
                 int encoder = atom_getfloatarg(1, argc, argv);
                 uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
