@@ -555,7 +555,7 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
 void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
     if(argc > 0){
         const char * cmdName = atom_getsymbolarg(0, argc, argv)->s_name;
-        /* servo rw ADDRESS AUTORESTART RWMODE ARG0 (ARG1) (ARG2) (...) */
+        /* I2C rw ADDRESS AUTORESTART RWMODE ARG0 (ARG1) (ARG2) (...) */
         /* AUTORESTART = 0 : Stop, 1 : Restart */
         /* RWMODE = wr : Write, ro : Read Only, rc : Read Continuously, rw : Read Write */
         if(strcmp(cmdName, "rw") == 0){
@@ -591,7 +591,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 free(buffer);
             }
         }
-        /* servo reply  */
+        /* I2C reply  */
         if(strcmp(cmdName, "reply") == 0){
             if(argc > 3){
                 int addr = atom_getfloatarg(1, argc, argv);
@@ -614,6 +614,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 free(buffer);
             }
         }
+        /* I2C delay DELAY */
         if(strcmp(cmdName, "delay") == 0){
             if(argc > 1){
                 int delay = atom_getfloatarg(1, argc, argv);
@@ -648,6 +649,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
 void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
     if(argc > 0){
         const char * cmdName = atom_getsymbolarg(0, argc, argv)->s_name;
+        /* servo config PIN MINPULSE MAXPULSE */
         if(strcmp(cmdName, "config") == 0){
             if(argc > 3){
                 int pin = atom_getfloatarg(1, argc, argv);
@@ -666,6 +668,7 @@ void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 free(buffer);
             }
         }
+        /* servo write PIN VALUE */
         if(strcmp(cmdName, "write") == 0){
             if(argc > 2){
                 int pin = atom_getfloatarg(1, argc, argv);
@@ -698,6 +701,7 @@ void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
 
 void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
     if(argc > 0){
+        /* encoder attach ENCODER PINA PINB */
         const char * cmdName = atom_getsymbolarg(0, argc, argv)->s_name;
         if(strcmp(cmdName, "attach") == 0){
             if(argc > 3){
@@ -716,6 +720,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 free(buffer);
             }
         }
+        /* encoder read ENCODER */
         if(strcmp(cmdName, "read") == 0){
             if(argc > 1){
                 int encoder = atom_getfloatarg(1, argc, argv);
@@ -729,6 +734,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 free(buffer);
             }
         }
+        /* encoder readAll */
         if(strcmp(cmdName, "readAll") == 0){
             uint8_t * buffer = (uint8_t *)malloc(4 * sizeof(uint8_t));
             buffer[0] = 0xF0;
@@ -738,6 +744,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
             writeBuffer(x, buffer, 4);
             free(buffer);
         }
+        /* encoder reset ENCODER */
         if(strcmp(cmdName, "reset") == 0){
             if(argc > 1){
                 int encoder = atom_getfloatarg(1, argc, argv);
@@ -751,6 +758,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 free(buffer);
             }
         }
+        /* encoder report ENCODER */
         if(strcmp(cmdName, "report") == 0){
             if(argc > 1){
                 int enable = atom_getfloatarg(1, argc, argv);
@@ -764,6 +772,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 free(buffer);
             }
         }
+        /* encoder detach ENCODER */
         if(strcmp(cmdName, "detach") == 0){
             if(argc > 1){
                 int encoder = atom_getfloatarg(1, argc, argv);

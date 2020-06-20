@@ -9,7 +9,7 @@ lib.name = pdfirmata
 class.sources = pdfirmata.c
 
 # all extra files to be included in binary distribution of the library
-datafiles = README.md LICENSE
+datafiles = pdfirmata-help.pd README.md LICENSE
 
 PDINCLUDEDIR=pure-data/src/
 PDBINDIR=bin/

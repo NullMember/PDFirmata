@@ -1,0 +1,138 @@
+#N canvas 290 197 687 418 12;
+#X obj 192 223 pdfirmata;
+#X obj 58 223 comport 1 57600;
+#X obj 114 350 pdfirmata;
+#X text 54 321 Command In;
+#X text 171 322 RAW In;
+#X text 58 379 RAW Out;
+#X text 171 376 Response Out;
+#X obj 192 184 r firmatacmd;
+#N canvas 925 131 520 300 pinMode 0;
+#X msg 27 35 pinMode 13 INPUT;
+#X msg 27 65 pinMode 13 OUTPUT;
+#X msg 27 98 pinMode 13 ANALOG;
+#X msg 27 128 pinMode 13 PWM;
+#X msg 178 35 pinMode 13 SERVO;
+#X msg 178 65 pinMode 13 SHIFT;
+#X msg 178 98 pinMode 13 I2C;
+#X msg 178 128 pinMode 13 ONEWIRE;
+#X msg 328 34 pinMode 13 STEPPER;
+#X msg 328 63 pinMode 13 ENCODER;
+#X msg 328 97 pinMode 13 SERIAL;
+#X msg 328 127 pinMode 13 PULLUP;
+#X obj 168 203 s pdfirmatacmd;
+#X connect 0 0 12 0;
+#X connect 1 0 12 0;
+#X connect 2 0 12 0;
+#X connect 3 0 12 0;
+#X connect 4 0 12 0;
+#X connect 5 0 12 0;
+#X connect 6 0 12 0;
+#X connect 7 0 12 0;
+#X connect 8 0 12 0;
+#X connect 9 0 12 0;
+#X connect 10 0 12 0;
+#X connect 11 0 12 0;
+#X restore 317 182 pd pinMode;
+#X msg 57 67 digitalWrite 13 0;
+#X msg 57 94 digitalWrite 13 1;
+#X obj 57 127 s firmatacmd;
+#X msg 225 92 analogWrite 11 \$1;
+#X obj 228 64 hsl 128 15 0 255 0 0 empty empty empty -2 -8 0 10 -262144
+-1 -1 0 1;
+#X obj 225 129 s firmatacmd;
+#X msg 404 92 analogIn 0 1;
+#X msg 404 66 analogIn 0 0;
+#X obj 404 133 s firmatacmd;
+#X text 47 40 digitalWrite PIN STATE;
+#X text 219 40 analogWrite PIN VALUE;
+#X text 389 40 analogIn PIN ENABLE?;
+#X msg 567 69 pinRead 13;
+#X text 565 40 pinRead PIN;
+#X obj 567 133 s firmatacmd;
+#X obj 252 256 print;
+#N canvas 1117 193 531 656 serial 0;
+#X msg 18 75 serial config HW0 115200 4 5;
+#X text 15 31 serial config PORT BAUD (RX) (TX);
+#X text 16 52 RX and TX is optional and platform specific;
+#X msg 18 132 serial print HW0 Hello World!;
+#X text 16 109 serial print PORT SYM0 (SYM1) (SYM2) ...;
+#X msg 17 189 serial println HW0 Hello World!;
+#X text 15 168 serial println PORT SYM0 (SYM1) (SYM2) ...;
+#X text 16 222 serial write PORT BYTE0 (BYTE1) (BYTE2) ...;
+#X msg 18 243 serial write HW0 72 101 108 108 111 32 87 111 114 108
+100 33 10;
+#X text 17 293 serial read PORT READMODE (MAXBYTES);
+#X msg 19 332 serial read HW0 0 16;
+#X text 18 311 READMODE -> 0 : Continuous \, 1 : Stop after read;
+#X text 17 367 serial reply PORT BYTE0 (BYTE1) (BYTE2) ...;
+#X msg 19 390 serial reply HW0 72 101 108 108 111 32 87 111 114 108
+100 33 10;
+#X text 17 435 serial close PORT;
+#X msg 19 455 serial close HW0;
+#X text 163 433 serial flush PORT;
+#X msg 165 453 serial flush HW0;
+#X text 304 431 serial listen PORT;
+#X msg 306 451 serial listen HW0;
+#X text 18 518 Note: Please be careful while sending print \, println
+\, write and reply commands. Don't exceed Arduino's serial buffer limit.
+Each character takes 2 byte \, maximum character limit is (MAX_BUFFER
+- 5) / 2 Default value of the MAX_BUFFER is 64 byte https://github.com/arduino/ArduinoCore-avr/blob/3055c1efa3c6980c864f661e6c8cc5d5ac773af4/cores/arduino/HardwareSerial.h#L42
+;
+#X restore 317 215 pd serial;
+#N canvas 1187 362 493 362 I2C 0;
+#X text 19 41 ADDRESS can be either 7-bit (< 128) or 10-bit (< 1024)
+;
+#X text 19 58 AUTORESTART -> 0 : Stop \, 1 : Restart;
+#X text 19 75 READMODE -> wr : Write \, ro : Read Only \, rc : Read
+Continuously \, rw : Read Write;
+#X msg 23 111 I2C rw 36 0 wr 42 75 89 123;
+#X text 18 23 I2C rw ADDRESS AUTORESTART RWMODE BYTE0 (BYTE1) (BYTE2)
+...;
+#X text 21 151 I2C reply ADDRESS REGADDRESS BYTE0 (BYTE1) (BYTE2) ...
+;
+#X msg 24 175 I2C reply 36 812 42 75 89 123;
+#X text 22 217 I2C config BYTE0 (BYTE1) (BYTE2) ...;
+#X msg 23 243 I2C config 12 123 53 23;
+#X text 22 280 I2C delay DELAY;
+#X msg 23 306 I2C delay 100;
+#X restore 317 248 pd I2C;
+#N canvas 1210 376 450 300 servo 0;
+#X text 29 28 servo config PIN MINPULSE MAXPULSE;
+#X msg 32 53 servo config 13 500 2500;
+#X text 28 101 servo write PIN VALUE;
+#X msg 30 142 servo write 13 90;
+#X text 27 119 if VALUE < 500 it's angle otherwise pulse duration;
+#X restore 317 281 pd servo;
+#N canvas 1081 301 451 360 encoder 0;
+#X msg 25 58 encoder attach 0 12 13;
+#X text 23 15 encoder attach ENCODER PINA PINB;
+#X text 23 35 ENCODER is Encoder number. Up to MAX_ENCODERS - 1;
+#X msg 25 105 encoder read 0;
+#X text 22 84 encoder read ENCODER;
+#X text 22 131 encoder readAll;
+#X msg 25 152 encoder readAll;
+#X text 22 178 encoder reset ENCODER;
+#X msg 24 199 encoder reset 0;
+#X text 21 222 encoder report ENCODER;
+#X msg 23 243 encoder report 0;
+#X text 21 268 encoder detach ENCODER;
+#X msg 23 289 encoder detach 0;
+#X restore 317 317 pd encoder;
+#N canvas 570 252 450 300 stepper 0;
+#X text 140 115 Not yet implemented;
+#X restore 317 351 pd stepper;
+#X text 410 210 Copyright Malik Enes Safak 2017-2020;
+#X text 410 289 for more information about protocol https://github.com/firmata/protocol
+;
+#X connect 0 0 1 0;
+#X connect 0 1 24 0;
+#X connect 1 0 0 1;
+#X connect 7 0 0 0;
+#X connect 9 0 11 0;
+#X connect 10 0 11 0;
+#X connect 12 0 14 0;
+#X connect 13 0 12 0;
+#X connect 15 0 17 0;
+#X connect 16 0 17 0;
+#X connect 21 0 23 0;
