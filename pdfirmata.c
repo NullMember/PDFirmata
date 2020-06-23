@@ -910,7 +910,288 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
 }
 
 void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
-    error("Not yet implemented");
+    if(argc > 0){
+        const char * cmdName = atom_getsymbolarg(0, argc, argv)->s_name;
+        /* stepper config motor interface step enable pin1 pin2 (pin3) (pin4) (enablePin) (invert) */
+        if(strcmp(cmdName, "config") == 0){
+            if(argc > 6){
+                uint8_t i = 1;
+                uint8_t motor = atom_getfloatarg(1, argc, argv);
+                uint8_t interface = atom_getfloatarg(2, argc, argv);
+                uint8_t step = atom_getfloatarg(3, argc, argv);
+                uint8_t enable = atom_getfloatarg(4, argc, argv);
+                /* interface is driver or two pin */
+                if(interface == 1 | interface == 2){
+                    uint8_t pin1 = atom_getfloatarg(5, argc, argv);
+                    uint8_t pin2 = atom_getfloatarg(6, argc, argv);
+                    if(argc > 8){
+                        uint8_t enablePin = atom_getfloatarg(7, argc, argv);
+                        uint8_t invert = atom_getfloatarg(8, argc, argv);
+                        uint8_t * buffer = (uint8_t *)malloc(10 * sizeof(uint8_t));
+                        buffer[0] = 0xF0;
+                        buffer[1] = 0x62;
+                        buffer[2] = 0x00;
+                        buffer[3] = motor & 0x7F;
+                        buffer[4] = ((interface & 0x7) << 4) | ((step & 0x7) << 1) | (enable & 0x1);
+                        buffer[5] = pin1 & 0x7F;
+                        buffer[6] = pin2 & 0x7F;
+                        buffer[7] = enablePin & 0x7F;
+                        buffer[8] = invert & 0x7F;
+                        buffer[9] = 0xF7;
+                        writeBuffer(x, buffer, 10);
+                        free(buffer);
+                    }
+                    else if(argc > 7){
+                        uint8_t enablePinorInvert = atom_getfloatarg(7, argc, argv);
+                        uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                        buffer[0] = 0xF0;
+                        buffer[1] = 0x62;
+                        buffer[2] = 0x00;
+                        buffer[3] = motor & 0x7F;
+                        buffer[4] = ((interface & 0x7) << 4) | ((step & 0x7) << 1) | (enable & 0x1);
+                        buffer[5] = pin1 & 0x7F;
+                        buffer[6] = pin2 & 0x7F;
+                        buffer[7] = enablePinorInvert & 0x7F;
+                        buffer[8] = 0xF7;
+                        writeBuffer(x, buffer, 9);
+                        free(buffer);
+                    }
+                    else{
+                        uint8_t * buffer = (uint8_t *)malloc(8 * sizeof(uint8_t));
+                        buffer[0] = 0xF0;
+                        buffer[1] = 0x62;
+                        buffer[2] = 0x00;
+                        buffer[3] = motor & 0x7F;
+                        buffer[4] = ((interface & 0x7) << 4) | ((step & 0x7) << 1) | (enable & 0x1);
+                        buffer[5] = pin1 & 0x7F;
+                        buffer[6] = pin2 & 0x7F;
+                        buffer[7] = 0xF7;
+                        writeBuffer(x, buffer, 8);
+                        free(buffer);
+                    }
+                }
+                /* interface is three pin */
+                else if(interface == 3){
+                    if(argc > 7){
+                        uint8_t pin1 = atom_getfloatarg(5, argc, argv);
+                        uint8_t pin2 = atom_getfloatarg(6, argc, argv);
+                        uint8_t pin3 = atom_getfloatarg(7, argc, argv);
+                        if(argc > 9){
+                            uint8_t enablePin = atom_getfloatarg(8, argc, argv);
+                            uint8_t invert = atom_getfloatarg(9, argc, argv);
+                            uint8_t * buffer = (uint8_t *)malloc(11 * sizeof(uint8_t));
+                            buffer[0] = 0xF0;
+                            buffer[1] = 0x62;
+                            buffer[2] = 0x00;
+                            buffer[3] = motor & 0x7F;
+                            buffer[4] = ((interface & 0x7) << 4) | ((step & 0x7) << 1) | (enable & 0x1);
+                            buffer[5] = pin1 & 0x7F;
+                            buffer[6] = pin2 & 0x7F;
+                            buffer[7] = pin3 & 0x7F;
+                            buffer[8] = enablePin & 0x7F;
+                            buffer[9] = invert & 0x7F;
+                            buffer[10] = 0xF7;
+                            writeBuffer(x, buffer, 11);
+                            free(buffer);
+                        }
+                        else if(argc > 8){
+                            uint8_t enablePinorInvert = atom_getfloatarg(8, argc, argv);
+                            uint8_t * buffer = (uint8_t *)malloc(10 * sizeof(uint8_t));
+                            buffer[0] = 0xF0;
+                            buffer[1] = 0x62;
+                            buffer[2] = 0x00;
+                            buffer[3] = motor & 0x7F;
+                            buffer[4] = ((interface & 0x7) << 4) | ((step & 0x7) << 1) | (enable & 0x1);
+                            buffer[5] = pin1 & 0x7F;
+                            buffer[6] = pin2 & 0x7F;
+                            buffer[7] = pin3 & 0x7F;
+                            buffer[8] = enablePinorInvert & 0x7F;
+                            buffer[9] = 0xF7;
+                            writeBuffer(x, buffer, 10);
+                            free(buffer);
+                        }
+                        else{
+                            uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                            buffer[0] = 0xF0;
+                            buffer[1] = 0x62;
+                            buffer[2] = 0x00;
+                            buffer[3] = motor & 0x7F;
+                            buffer[4] = ((interface & 0x7) << 4) | ((step & 0x7) << 1) | (enable & 0x1);
+                            buffer[5] = pin1 & 0x7F;
+                            buffer[6] = pin2 & 0x7F;
+                            buffer[7] = pin3 & 0x7F;
+                            buffer[8] = 0xF7;
+                            writeBuffer(x, buffer, 9);
+                            free(buffer);
+                        }
+                    }
+                }
+                else if(interface == 4){
+                    if(argc > 8){
+                        uint8_t pin1 = atom_getfloatarg(5, argc, argv);
+                        uint8_t pin2 = atom_getfloatarg(6, argc, argv);
+                        uint8_t pin3 = atom_getfloatarg(7, argc, argv);
+                        uint8_t pin4 = atom_getfloatarg(8, argc, argv);
+                        if(argc > 10){
+                            uint8_t enablePin = atom_getfloatarg(9, argc, argv);
+                            uint8_t invert = atom_getfloatarg(10, argc, argv);
+                            uint8_t * buffer = (uint8_t *)malloc(12 * sizeof(uint8_t));
+                            buffer[0] = 0xF0;
+                            buffer[1] = 0x62;
+                            buffer[2] = 0x00;
+                            buffer[3] = motor & 0x7F;
+                            buffer[4] = ((interface & 0x7) << 4) | ((step & 0x7) << 1) | (enable & 0x1);
+                            buffer[5] = pin1 & 0x7F;
+                            buffer[6] = pin2 & 0x7F;
+                            buffer[7] = pin3 & 0x7F;
+                            buffer[8] = pin4 & 0x7F;
+                            buffer[9] = enablePin & 0x7F;
+                            buffer[10] = invert & 0x7F;
+                            buffer[11] = 0xF7;
+                            writeBuffer(x, buffer, 12);
+                            free(buffer);
+                        }
+                        else if(argc > 9){
+                            uint8_t enablePinorInvert = atom_getfloatarg(9, argc, argv);
+                            uint8_t * buffer = (uint8_t *)malloc(11 * sizeof(uint8_t));
+                            buffer[0] = 0xF0;
+                            buffer[1] = 0x62;
+                            buffer[2] = 0x00;
+                            buffer[3] = motor & 0x7F;
+                            buffer[4] = ((interface & 0x7) << 4) | ((step & 0x7) << 1) | (enable & 0x1);
+                            buffer[5] = pin1 & 0x7F;
+                            buffer[6] = pin2 & 0x7F;
+                            buffer[7] = pin3 & 0x7F;
+                            buffer[8] = pin4 & 0x7F;
+                            buffer[9] = enablePinorInvert & 0x7F;
+                            buffer[10] = 0xF7;
+                            writeBuffer(x, buffer, 11);
+                            free(buffer);
+                        }
+                        else{
+                            uint8_t * buffer = (uint8_t *)malloc(10 * sizeof(uint8_t));
+                            buffer[0] = 0xF0;
+                            buffer[1] = 0x62;
+                            buffer[2] = 0x00;
+                            buffer[3] = motor & 0x7F;
+                            buffer[4] = ((interface & 0x7) << 4) | ((step & 0x7) << 1) | (enable & 0x1);
+                            buffer[5] = pin1 & 0x7F;
+                            buffer[6] = pin2 & 0x7F;
+                            buffer[7] = pin3 & 0x7F;
+                            buffer[8] = pin4 & 0x7F;
+                            buffer[9] = 0xF7;
+                            writeBuffer(x, buffer, 10);
+                            free(buffer);
+                        }
+                    }
+                }
+                else{
+                    error("unknown interface number");
+                }
+            }
+        }
+        if(strcmp(cmdName, "zero") == 0){
+            if(argc > 1){
+                uint8_t motor = atom_getfloatarg(1, argc, argv);
+                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x01;
+                buffer[3] = motor & 0x7F;
+                buffer[4] = 0xF7;
+                writeBuffer(x, buffer, 5);
+                free(buffer);
+            }
+        }
+        if(strcmp(cmdName, "step") == 0){
+            if(argc > 2){
+                uint8_t motor = atom_getfloatarg(1, argc, argv);
+                int32_t step = atom_getfloatarg(2, argc, argv);
+                uint8_t * buffer = (uint8_t *)malloc(10 * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x02;
+                buffer[3] = motor & 0x7F;
+                buffer[4] = step & 0x7F;
+                buffer[5] = (step >> 7) & 0x7F;
+                buffer[6] = (step >> 14) & 0x7F;
+                buffer[7] = (step >> 21) & 0x7F;
+                buffer[8] = (step >> 28) & 0x1F;
+                buffer[9] = 0xF7;
+                writeBuffer(x, buffer, 10);
+                free(buffer);
+            }
+        }
+        if(strcmp(cmdName, "to") == 0){
+            if(argc > 2){
+                uint8_t motor = atom_getfloatarg(1, argc, argv);
+                int32_t position = atom_getfloatarg(2, argc, argv);
+                uint8_t * buffer = (uint8_t *)malloc(10 * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x03;
+                buffer[3] = motor & 0x7F;
+                buffer[4] = position & 0x7F;
+                buffer[5] = (position >> 7) & 0x7F;
+                buffer[6] = (position >> 14) & 0x7F;
+                buffer[7] = (position >> 21) & 0x7F;
+                buffer[8] = (position >> 28) & 0x1F;
+                buffer[9] = 0xF7;
+                writeBuffer(x, buffer, 10);
+                free(buffer);
+            }
+        }
+        if(strcmp(cmdName, "enable") == 0){
+            if(argc > 2){
+                uint8_t motor = atom_getfloatarg(1, argc, argv);
+                int32_t state = atom_getfloatarg(2, argc, argv);
+                uint8_t * buffer = (uint8_t *)malloc(6 * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x04;
+                buffer[3] = motor & 0x7F;
+                buffer[4] = state & 0x7F;
+                buffer[5] = 0xF7;
+                writeBuffer(x, buffer, 6);
+                free(buffer); 
+            }
+        }
+        if(strcmp(cmdName, "stop") == 0){
+            if(argc > 1){
+                uint8_t motor = atom_getfloatarg(1, argc, argv);
+                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x05;
+                buffer[3] = motor & 0x7F;
+                buffer[4] = 0xF7;
+                writeBuffer(x, buffer, 5);
+                free(buffer);
+            }
+        }
+        if(strcmp(cmdName, "position") == 0){
+            if(argc > 1){
+                uint8_t motor = atom_getfloatarg(1, argc, argv);
+                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x06;
+                buffer[3] = motor & 0x7F;
+                buffer[4] = 0xF7;
+                writeBuffer(x, buffer, 5);
+                free(buffer);
+            }
+        }
+        if(strcmp(cmdName, "limit") == 0){
+            error("Not implemented yet");
+        }
+        if(strcmp(cmdName, "acceleration") == 0){
+            error("Not implemented yet");
+        }
+        if(strcmp(cmdName, "speed") == 0){
+            error("Not implemented yet");
+        }
+    }
 }
 
 void pdfirmata_onewire(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
