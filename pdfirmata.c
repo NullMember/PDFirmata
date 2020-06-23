@@ -55,6 +55,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv);
 void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv);
 void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv);
 void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv);
+void pdfirmata_multistepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv);
 void pdfirmata_onewire(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv);
 void pdfirmata_scheduler(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv);
 
@@ -158,6 +159,7 @@ void pdfirmata_setup(void){
     class_addmethod(pdfirmata_class, (t_method)pdfirmata_servo, gensym("servo"), A_GIMME, 0);
     class_addmethod(pdfirmata_class, (t_method)pdfirmata_encoder, gensym("encoder"), A_GIMME, 0);
     class_addmethod(pdfirmata_class, (t_method)pdfirmata_stepper, gensym("stepper"), A_GIMME, 0);
+    class_addmethod(pdfirmata_class, (t_method)pdfirmata_multistepper, gensym("multistepper"), A_GIMME, 0);
     class_addmethod(pdfirmata_class, (t_method)pdfirmata_onewire, gensym("onewire"), A_GIMME, 0);
     class_addmethod(pdfirmata_class, (t_method)pdfirmata_scheduler, gensym("scheduler"), A_GIMME, 0);
 }
@@ -1190,6 +1192,75 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
         }
         if(strcmp(cmdName, "speed") == 0){
             error("Not implemented yet");
+        }
+    }
+}
+
+void pdfirmata_multistepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
+    if(argc > 0){
+        const char * cmdName = atom_getsymbolarg(0, argc, argv)->s_name;
+        /* multistep config group motor1 motor2 (motor3) (motor4) ... */
+        if(strcmp(cmdName, "config") == 0){
+            if(argc > 4){
+                uint8_t group = atom_getfloatarg(1, argc, argv);
+                uint8_t * buffer = (uint8_t *)malloc(((argc - 2) + 5) * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x20;
+                buffer[3] = group & 0x7F;
+                uint8_t i = 2;
+                while(i < argc){
+                    buffer[i + 2] = atom_getfloatarg(i, argc, argv);
+                    i++;
+                }
+                buffer[i + 2] = 0xF7;
+                writeBuffer(x, buffer, ((argc - 2) + 5));
+                free(buffer);
+            }
+        }
+        /* multistep to group motor1 (motor2) (motor3) (motor4) ... */
+        if(strcmp(cmdName, "to") == 0){
+            if(argc > 2){
+                uint8_t group = atom_getfloatarg(1, argc, argv);
+                uint8_t positionCount = argc - 2;
+                int32_t * positions = (int32_t *)malloc(positionCount * sizeof(int32_t));
+                uint8_t i = 2;
+                while(i < argc){
+                    positions[i - 2] = atom_getfloatarg(i, argc, argv);
+                    i++;
+                }
+                uint8_t * buffer = (uint8_t *)malloc(((positionCount * 5) + 5) * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x21;
+                buffer[3] = group & 0x7F;
+                i = 0;
+                while(i < positionCount){
+                    buffer[((i * 5) + 4)] = positions[i] & 0x7F;
+                    buffer[((i * 5) + 4) + 1] = (positions[i] & 0x7F) << 7;
+                    buffer[((i * 5) + 4) + 2] = (positions[i] & 0x7F) << 14;
+                    buffer[((i * 5) + 4) + 3] = (positions[i] & 0x7F) << 21;
+                    buffer[((i * 5) + 4) + 4] = (positions[i] & 0x1F) << 28;
+                    i++;
+                }
+                buffer[(positionCount * 5) + 4] = 0xF7;
+                writeBuffer(x, buffer, ((positionCount * 5) + 5));
+                free(buffer);
+            }
+        }
+        /* multistep stop group */
+        if(strcmp(cmdName, "stop") == 0){
+            if(argc > 1){
+                uint8_t group = atom_getfloatarg(1, argc, argv);
+                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x23;
+                buffer[3] = group & 0x7F;
+                buffer[4] = 0xF7;
+                writeBuffer(x, buffer, 5);
+                free(buffer);
+            }
         }
     }
 }
