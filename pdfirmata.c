@@ -1274,6 +1274,53 @@ void pdfirmata_scheduler(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * arg
 }
 
 void decSysex(t_pdfirmata * x){
+    /* Stepper replies */
+    if(x->buffer[0] == 0x62){
+        /* Stepper position reply */
+        if(x->buffer[1] == 0x06){
+            uint16_t i = 2;
+            uint8_t stepper = x->buffer[i++];
+            int32_t position = x->buffer[i++] & 0x7F;
+            position |= (x->buffer[i++] & 0x7F) << 7;
+            position |= (x->buffer[i++] & 0x7F) << 14;
+            position |= (x->buffer[i++] & 0x7F) << 21;
+            position |= (x->buffer[i++] & 0x1F) << 28;
+            t_atom * buffer = (t_atom *)malloc(4 * sizeof(t_atom));
+            SETSYMBOL(buffer, gensym("stepper"));
+            SETSYMBOL(buffer + 1, gensym("position"));
+            SETFLOAT(buffer + 2, stepper);
+            SETFLOAT(buffer + 3, position);
+            outlet_list(x->decOut, &s_symbol, 4, buffer);
+            free(buffer);
+        }
+        /* Stepper move complete reply */
+        if(x->buffer[1] == 0x0A){
+            uint16_t i = 2;
+            uint8_t stepper = x->buffer[i++];
+            int32_t position = x->buffer[i++] & 0x7F;
+            position |= (x->buffer[i++] & 0x7F) << 7;
+            position |= (x->buffer[i++] & 0x7F) << 14;
+            position |= (x->buffer[i++] & 0x7F) << 21;
+            position |= (x->buffer[i++] & 0x1F) << 28;
+            t_atom * buffer = (t_atom *)malloc(4 * sizeof(t_atom));
+            SETSYMBOL(buffer, gensym("stepper"));
+            SETSYMBOL(buffer + 1, gensym("complete"));
+            SETFLOAT(buffer + 2, stepper);
+            SETFLOAT(buffer + 3, position);
+            outlet_list(x->decOut, &s_symbol, 4, buffer);
+            free(buffer);
+        }
+        /* MultiStepper move complete reply */
+        if(x->buffer[1] == 0x24){
+            uint8_t group = x->buffer[2];
+            t_atom * buffer = (t_atom *)malloc(3 * sizeof(t_atom));
+            SETSYMBOL(buffer, gensym("multistepper"));
+            SETSYMBOL(buffer + 1, gensym("complete"));
+            SETFLOAT(buffer + 2, group);
+            outlet_list(x->decOut, &s_symbol, 3, buffer);
+            free(buffer);
+        }
+    }
     /* Firmware name and version reply */
     if(x->buffer[0] == 0x79){
         uint16_t i = 1;
