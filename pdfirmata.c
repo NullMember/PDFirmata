@@ -917,13 +917,12 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
         /* stepper config motor interface step enable pin1 pin2 (pin3) (pin4) (enablePin) (invert) */
         if(strcmp(cmdName, "config") == 0){
             if(argc > 6){
-                uint8_t i = 1;
                 uint8_t motor = atom_getfloatarg(1, argc, argv);
                 uint8_t interface = atom_getfloatarg(2, argc, argv);
                 uint8_t step = atom_getfloatarg(3, argc, argv);
                 uint8_t enable = atom_getfloatarg(4, argc, argv);
                 /* interface is driver or two pin */
-                if(interface == 1 | interface == 2){
+                if((interface == 1) | (interface == 2)){
                     uint8_t pin1 = atom_getfloatarg(5, argc, argv);
                     uint8_t pin2 = atom_getfloatarg(6, argc, argv);
                     if(argc > 8){
@@ -1237,10 +1236,10 @@ void pdfirmata_multistepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * 
                 i = 0;
                 while(i < positionCount){
                     buffer[((i * 5) + 4)] = positions[i] & 0x7F;
-                    buffer[((i * 5) + 4) + 1] = (positions[i] & 0x7F) << 7;
-                    buffer[((i * 5) + 4) + 2] = (positions[i] & 0x7F) << 14;
-                    buffer[((i * 5) + 4) + 3] = (positions[i] & 0x7F) << 21;
-                    buffer[((i * 5) + 4) + 4] = (positions[i] & 0x1F) << 28;
+                    buffer[((i * 5) + 4) + 1] = (positions[i] & 0x7F) >> 7;
+                    buffer[((i * 5) + 4) + 2] = (positions[i] & 0x7F) >> 14;
+                    buffer[((i * 5) + 4) + 3] = (positions[i] & 0x7F) >> 21;
+                    buffer[((i * 5) + 4) + 4] = (positions[i] & 0x1F) >> 28;
                     i++;
                 }
                 buffer[(positionCount * 5) + 4] = 0xF7;
