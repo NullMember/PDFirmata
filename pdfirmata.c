@@ -24,12 +24,12 @@ static t_class *pdfirmata_class;
 
 typedef struct _pdfirmata{
     t_object x_obj;
-    uint8_t  *buffer;
-    t_atom   *abuffer;
+    uint8_t  * buffer;
+    t_atom   *  abuffer;
     uint32_t rawCounter;
     int32_t  rawType; //rawType 0 nothing, 1 sysex
-    t_inlet  *raw;
-    t_outlet *rawOut, *decOut;
+    t_inlet  * raw;
+    t_outlet * rawOut, * decOut;
 }t_pdfirmata;
 
 // function protoypes
@@ -181,35 +181,100 @@ uint8_t serialPort(const char * portName){
 }
 
 void pdfirmata_onRawData(t_pdfirmata *x, t_floatarg f){
-    if(f == 0xF7){ //sysex end
+    /* SysEx End */
+    if(f == 0xF7){
         x->rawType = 0;
         decSysex(x);
     }
-    if(x->rawType == 0){ //end
+    /* All bytes received */
+    if(x->rawType == 0){
         x->rawCounter = 0;
     }
-    else if(x->rawType == 1){ //sysex buffer
+    /* Read incoming SysEx bytes */
+    else if(x->rawType == 1){
         x->buffer[x->rawCounter] = f;
         x->rawCounter++;
     }
-    else if(x->rawType == 2){ //analog read buffer and output
+    /* Read and output analog read command */
+    else if(x->rawType == 2){
         x->buffer[x->rawCounter] = f;
         x->rawCounter++;
         if(x->rawCounter == 3){
-            SETSYMBOL(&x->abuffer[0], gensym("Analog"));
-            SETFLOAT(&x->abuffer[1], x->buffer[0] - 0xE0);
-            SETFLOAT(&x->abuffer[2], x->buffer[1] + (x->buffer[2] * 128));
-            outlet_list(x->decOut, &s_list, 3, x->abuffer);
+            t_atom * buffer = (t_atom *)malloc(3 * sizeof(t_atom));
+            uint16_t value = x->buffer[1] & 0x7F;
+            value |= (x->buffer[2] & 0x7F) << 7;
+            SETSYMBOL(buffer, gensym("analog"));
+            SETFLOAT(buffer + 1, x->buffer[0]);
+            SETFLOAT(buffer + 2, value);
+            outlet_list(x->decOut, &s_list, 3, buffer);
+            free(buffer);
             x->rawType = 0;
         }
     }
-    if(f == 0xF0){ //sysex begin
-        x->rawType = 1;
-    }
-    else if((f >= 224) && (f <= 239)){ //analog read
+    /* Read and output digital read command */
+    else if(x->rawType == 3){
         x->buffer[x->rawCounter] = f;
         x->rawCounter++;
+        if(x->rawCounter == 3){
+            t_atom * buffer = (t_atom *)malloc(10 * sizeof(t_atom));
+            uint16_t value = x->buffer[1] & 0x7F;
+            value |= (x->buffer[2] & 0x1) << 7;
+            SETSYMBOL(buffer, gensym("digital"));
+            SETFLOAT(buffer + 1, x->buffer[0]);
+            SETFLOAT(buffer + 2, value & 0x01);
+            SETFLOAT(buffer + 3, (value >> 1) & 0x01);
+            SETFLOAT(buffer + 4, (value >> 2) & 0x01);
+            SETFLOAT(buffer + 5, (value >> 3) & 0x01);
+            SETFLOAT(buffer + 6, (value >> 4) & 0x01);
+            SETFLOAT(buffer + 7, (value >> 5) & 0x01);
+            SETFLOAT(buffer + 8, (value >> 6) & 0x01);
+            SETFLOAT(buffer + 9, (value >> 7) & 0x01);
+            outlet_list(x->decOut, &s_list, 3, buffer);
+            free(buffer);
+            x->rawType = 0;
+        }
+    }
+    /* Major and minor version numbers */
+    else if(x->rawType == 4){
+        x->buffer[x->rawCounter] = f;
+        x->rawCounter++;
+        if(x->rawCounter == 3){
+            t_atom * buffer = (t_atom *)malloc(3 * sizeof(t_atom));
+            uint8_t major = x->buffer[1] & 0x7F;
+            uint8_t minor = x->buffer[2] & 0x7F;
+            SETSYMBOL(buffer, gensym("version"));
+            SETFLOAT(buffer + 1, major);
+            SETFLOAT(buffer + 2, minor);
+            outlet_list(x->decOut, &s_list, 3, buffer);
+            free(buffer);
+            x->rawType = 0;
+        }
+    }
+    /* Beginning of SysEx command */
+    /* Type 1 */
+    if(f == 0xF0){
+        x->rawType = 1;
+    }
+    /* Beginning of analog command */
+    /* Type 2 */
+    else if(((int)f & 0xF0) == 0xE0){
+        x->buffer[x->rawCounter] = (int)f & 0x0F;
+        x->rawCounter++;
         x->rawType = 2;
+    }
+    /* Beginning of digital command */
+    /* Type 3 */
+    else if(((int)f & 0xF0) == 0x90){
+        x->buffer[x->rawCounter] = (int)f & 0x0F;
+        x->rawCounter++;
+        x->rawType = 3;
+    }
+    /* Beginning of version number */
+    /* Type 4 */
+    else if((int)f == 0xF9){
+        x->buffer[x->rawCounter] = f;
+        x->rawCounter++;
+        x->rawType = 4;
     }
 }
 
