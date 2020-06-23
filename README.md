@@ -2,7 +2,13 @@
 Firmata Client for Pure Data
 
 # Current state
-As of 06.2020 this external almost completely rewritten. Included pd-lib-builder and Makefile for compiling external without headaches. New stepper protocol is not implemented yet but in TODO list for pdfirmata version 2 stable release (planned to release before 07.2020). I will provide binaries for all architectures in next days.
+As of 06.2020 this external almost completely rewritten. Included pd-lib-builder and Makefile for compiling external without headaches. I hope I will release stable before 07.2020.
+
+# TODO
+
+- [Implement OneWire](https://github.com/firmata/protocol/blob/master/onewire.md)
+- [Implement Scheduler](https://github.com/firmata/protocol/blob/master/scheduler.md)
+- [Implement custom floating point format used by accelstepper](https://github.com/firmata/protocol/blob/master/accelStepperFirmata.md#accelstepperfirmatas-custom-float-format)
 
 # Description
 
@@ -22,8 +28,7 @@ PDFirmata is Firmata Client for Miller S. Puckette's Pure Data. PDFirmata suppor
 # PDFirmata Instructions:
 
 If you are using Pure Data Vanilla, please install comport external (You can use Help-Find externals). 
-Most of features are implemented but not documented (like I2C, Stepper, Serial etc.). 
-You can find some usage notes in the PDFirmata.pd
+Look at the help file provided in this repo.
 
 # Compiling from source
 
