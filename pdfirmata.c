@@ -26,7 +26,6 @@ static t_class *pdfirmata_class;
 typedef struct _pdfirmata{
     t_object x_obj;
     uint8_t  * buffer;
-    t_atom   *  abuffer;
     uint32_t rawCounter;
     int32_t  rawType; //rawType 0 nothing, 1 sysex
     t_inlet  * raw;
@@ -167,7 +166,6 @@ void * pdfirmata_new(t_floatarg bufferSize){
     if(bufferSize < 1) bufferSize = 256;
 
     x->buffer = (uint8_t *)malloc(bufferSize * sizeof(uint8_t));
-    x->abuffer = (t_atom *)malloc(bufferSize * sizeof(t_atom));
 
     x->raw = inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_float, gensym("rawdata"));
 
@@ -183,7 +181,6 @@ void * pdfirmata_new(t_floatarg bufferSize){
 
 void pdfirmata_free(t_pdfirmata *x){
     free(x->buffer);
-    free(x->abuffer);
     inlet_free(x->raw);
     outlet_free(x->rawOut);
     outlet_free(x->decOut);
@@ -1240,7 +1237,25 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
             }
         }
         if(strcmp(cmdName, "limit") == 0){
-            error("Not implemented yet");
+            if(argc > 6){
+                uint8_t motor = atom_getfloatarg(1, argc, argv);
+                uint8_t lowerPin = atom_getfloatarg(2, argc, argv);
+                uint8_t lowerState = atom_getfloatarg(3, argc, argv);
+                uint8_t upperPin = atom_getfloatarg(4, argc, argv);
+                uint8_t upperState = atom_getfloatarg(5, argc, argv);
+                uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x07;
+                buffer[3] = motor & 0x7F;
+                buffer[4] = lowerPin & 0x7F;
+                buffer[5] = lowerState & 0x7F;
+                buffer[6] = upperPin & 0x7F;
+                buffer[7] = upperState & 0x7F;
+                buffer[8] = 0xF7;
+                writeBuffer(x, buffer, 9);
+                free(buffer);
+            }
         }
         if(strcmp(cmdName, "acceleration") == 0){
             if(argc > 2){
