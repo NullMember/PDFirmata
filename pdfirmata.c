@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "m_pd.h"
 
 static t_class *pdfirmata_class;
@@ -62,6 +63,61 @@ void pdfirmata_scheduler(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * arg
 void decSysex(t_pdfirmata *x);
 
 // !function prototypes
+
+/*  Custom float functions. These functions adapted from firmata.js implementation
+    firmata.js licensed under MIT https://github.com/firmata/firmata.js
+    Copyright (c) 2011-2015 Julian Gautier julian.gautier@alumni.neumont.edu
+    Copyright (c) 2015-2019 The Firmata.js Authors (see AUTHORS.md in above link) */
+
+#define MAX_SIGNIFICAND pow(2, 23)
+
+int encodeCustomFloat(float input){
+    int sign = input < 0 ? 1 : 0;
+
+    input *= input < 0 ? -1 : 1;
+    
+    int base10 = floor(log10(input));
+    
+    // Shift decimal to start of significand
+    int exponent = 0 + base10;
+    
+    input /= pow(10, base10);
+
+    // Shift decimal to the right as far as we can
+    while ((input != (int)input) && (input < MAX_SIGNIFICAND)) {
+        exponent -= 1;
+        input *= 10;
+    }
+
+    // Reduce precision if necessary
+    while (input > MAX_SIGNIFICAND) {
+        exponent += 1;
+        input /= 10;
+    }
+
+    int result = (int)input;
+    exponent += 11;
+    result &= 0x7FFFFF;
+    result |= (exponent & 0x0F) << 23;
+    result |= (sign & 0x01) << 27;
+
+    return result;
+}
+
+float decodeCustomFloat(unsigned int input) {
+    int exponent = ((input >> 23) & 0x0F) - 11;
+    
+    int sign = (input >> 27) & 0x01;
+
+    int result = input & 0x7FFFFF;
+    result *= sign == 1 ? -1 : 1;
+
+    float resultf = (float)result * pow(10, exponent);
+
+    return resultf;
+}
+
+// !Custom float functions
 
 // Constants
 
@@ -1187,10 +1243,42 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
             error("Not implemented yet");
         }
         if(strcmp(cmdName, "acceleration") == 0){
-            error("Not implemented yet");
+            if(argc > 2){
+                uint8_t motor = atom_getfloatarg(1, argc, argv);
+                float acceleration = atom_getfloatarg(2, argc, argv);
+                int32_t _acceleration = encodeCustomFloat(acceleration);  
+                uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x08;
+                buffer[3] = motor & 0x7F;
+                buffer[4] = _acceleration & 0x7F;
+                buffer[5] = (_acceleration >> 7) & 0x7F;
+                buffer[6] = (_acceleration >> 14) & 0x7F;
+                buffer[7] = (_acceleration >> 21) & 0x7F;
+                buffer[8] = 0xF7;
+                writeBuffer(x, buffer, 9);
+                free(buffer);
+            }
         }
         if(strcmp(cmdName, "speed") == 0){
-            error("Not implemented yet");
+            if(argc > 2){
+                uint8_t motor = atom_getfloatarg(1, argc, argv);
+                float speed = atom_getfloatarg(2, argc, argv);
+                int32_t _speed = encodeCustomFloat(speed);  
+                uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x62;
+                buffer[2] = 0x08;
+                buffer[3] = motor & 0x7F;
+                buffer[4] = _speed & 0x7F;
+                buffer[5] = (_speed >> 7) & 0x7F;
+                buffer[6] = (_speed >> 14) & 0x7F;
+                buffer[7] = (_speed >> 21) & 0x7F;
+                buffer[8] = 0xF7;
+                writeBuffer(x, buffer, 9);
+                free(buffer);
+            }
         }
     }
 }
