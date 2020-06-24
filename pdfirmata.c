@@ -255,14 +255,13 @@ void pdfirmata_onRawData(t_pdfirmata *x, t_floatarg f){
         x->buffer[x->rawCounter] = f;
         x->rawCounter++;
         if(x->rawCounter == 3){
-            t_atom * buffer = (t_atom *)malloc(3 * sizeof(t_atom));
+            t_atom buffer[3];
             uint16_t value = x->buffer[1] & 0x7F;
             value |= (x->buffer[2] & 0x7F) << 7;
             SETSYMBOL(buffer, gensym("analog"));
             SETFLOAT(buffer + 1, x->buffer[0]);
             SETFLOAT(buffer + 2, value);
             outlet_list(x->decOut, &s_list, 3, buffer);
-            free(buffer);
             x->rawType = 0;
         }
     }
@@ -271,7 +270,7 @@ void pdfirmata_onRawData(t_pdfirmata *x, t_floatarg f){
         x->buffer[x->rawCounter] = f;
         x->rawCounter++;
         if(x->rawCounter == 3){
-            t_atom * buffer = (t_atom *)malloc(10 * sizeof(t_atom));
+            t_atom buffer[10];
             uint16_t value = x->buffer[1] & 0x7F;
             value |= (x->buffer[2] & 0x1) << 7;
             SETSYMBOL(buffer, gensym("digital"));
@@ -285,7 +284,6 @@ void pdfirmata_onRawData(t_pdfirmata *x, t_floatarg f){
             SETFLOAT(buffer + 8, (value >> 6) & 0x01);
             SETFLOAT(buffer + 9, (value >> 7) & 0x01);
             outlet_list(x->decOut, &s_list, 3, buffer);
-            free(buffer);
             x->rawType = 0;
         }
     }
@@ -294,14 +292,13 @@ void pdfirmata_onRawData(t_pdfirmata *x, t_floatarg f){
         x->buffer[x->rawCounter] = f;
         x->rawCounter++;
         if(x->rawCounter == 3){
-            t_atom * buffer = (t_atom *)malloc(3 * sizeof(t_atom));
+            t_atom buffer[3];
             uint8_t major = x->buffer[1] & 0x7F;
             uint8_t minor = x->buffer[2] & 0x7F;
             SETSYMBOL(buffer, gensym("version"));
             SETFLOAT(buffer + 1, major);
             SETFLOAT(buffer + 2, minor);
             outlet_list(x->decOut, &s_list, 3, buffer);
-            free(buffer);
             x->rawType = 0;
         }
     }
@@ -339,33 +336,30 @@ void pdfirmata_version(t_pdfirmata * x){
 }
 
 void pdfirmata_firmware(t_pdfirmata * x){
-    uint8_t * buffer = (uint8_t *)malloc(3 * sizeof(uint8_t));
+    uint8_t buffer[3];
     buffer[0] = 0xF0;
     buffer[1] = 0x79;
     buffer[2] = 0xF7;
     writeBuffer(x, buffer, 3);
-    free(buffer);
 }
 
 void pdfirmata_capability(t_pdfirmata * x){
-    uint8_t * buffer = (uint8_t *)malloc(3 * sizeof(uint8_t));
+    uint8_t buffer[3];
     buffer[0] = 0xF0;
     buffer[1] = 0x6B;
     buffer[2] = 0xF7;
     writeBuffer(x, buffer, 3);
-    free(buffer);
 }
 
 void pdfirmata_sampling(t_pdfirmata * x, t_floatarg time){
     int _time = time;
-    uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+    uint8_t buffer[5];
     buffer[0] = 0xF0;
     buffer[1] = 0x7A;
     buffer[2] = _time & 0x7F;
     buffer[3] = (_time >> 7) & 0x7F;
     buffer[4] = 0xF7;
     writeBuffer(x, buffer, 5);
-    free(buffer);
 }
 
 void pdfirmata_pinMode(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
@@ -375,7 +369,7 @@ void pdfirmata_pinMode(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
             error("Pin number must between 0-127");
             return;
         }
-        uint8_t * buffer = (uint8_t *)malloc(3 * sizeof(uint8_t));
+        uint8_t buffer[3];
         buffer[0] = 0xF4;
         buffer[1] = _pin;
         buffer[2] = 0xFF;
@@ -392,7 +386,6 @@ void pdfirmata_pinMode(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
         else{
             writeBuffer(x, buffer, 3);
         }
-        free(buffer);
     }
 }
 
@@ -407,12 +400,11 @@ void pdfirmata_digitalWrite(t_pdfirmata * x, t_floatarg pin, t_floatarg state){
         error("State must 0 (LOW) or 1 (HIGH)");
         return;
     }
-    uint8_t * buffer = (uint8_t *)malloc(3 * sizeof(uint8_t));
+    uint8_t buffer[3];
     buffer[0] = 0xF5;
     buffer[1] = _pin;
     buffer[2] = _state;
     writeBuffer(x, buffer, 3);
-    free(buffer);
 }
 
 void pdfirmata_digitalIn(t_pdfirmata * x, t_floatarg port, t_floatarg state){
@@ -422,20 +414,18 @@ void pdfirmata_digitalIn(t_pdfirmata * x, t_floatarg port, t_floatarg state){
         error("Port number must between 0-15");
         return;
     }
-    uint8_t * buffer = (uint8_t *)malloc(2 * sizeof(uint8_t));
+    uint8_t buffer[2];
     buffer[0] = 0xD0 + _port;
     buffer[1] = _state > 0 ? 1 : 0;
     writeBuffer(x, buffer, 2);
-    free(buffer);
 }
 
 void pdfirmata_analogMap(t_pdfirmata * x){
-    uint8_t * buffer = (uint8_t *)malloc(3 * sizeof(uint8_t));
+    uint8_t buffer[3];
     buffer[0] = 0xF0;
     buffer[1] = 0x69;
     buffer[2] = 0xF7;
     writeBuffer(x, buffer, 3);
-    free(buffer);
 }
 
 void pdfirmata_analogWrite(t_pdfirmata * x, t_floatarg pin, t_floatarg value){
@@ -446,15 +436,14 @@ void pdfirmata_analogWrite(t_pdfirmata * x, t_floatarg pin, t_floatarg value){
         return;
     }
     if(_pin < 16 && _value < 0x4000){
-        uint8_t * buffer = (uint8_t *)malloc(3 * sizeof(uint8_t));
+        uint8_t buffer[3];
         buffer[0] = 0xE0 + _pin;
         buffer[1] = _value & 0x7F;
         buffer[2] = (_value >> 7) & 0x7F;
         writeBuffer(x, buffer, 3);
-        free(buffer);
     }
     else{
-        uint8_t * buffer = (uint8_t *)malloc(8 * sizeof(uint8_t));
+        uint8_t buffer[8];
         buffer[0] = 0xF0;
         buffer[1] = 0x6F;
         buffer[2] = _pin;
@@ -464,7 +453,6 @@ void pdfirmata_analogWrite(t_pdfirmata * x, t_floatarg pin, t_floatarg value){
         buffer[6] = (_value >> 21) & 127;
         buffer[7] = 0xF7;
         writeBuffer(x, buffer, 8);
-        free(buffer);
     }
 }
 
@@ -479,11 +467,10 @@ void pdfirmata_analogIn(t_pdfirmata * x, t_floatarg pin, t_floatarg state){
         error("State must 0 (DISABLE) or 1 (ENABLE)");
         return;
     }
-    uint8_t * buffer = (uint8_t *)malloc(2 * sizeof(uint8_t));
+    uint8_t buffer[2];
     buffer[0] = 0xC0 + _pin;
     buffer[1] = _state;
     writeBuffer(x, buffer, 2);
-    free(buffer);
 }
 
 void pdfirmata_pinState(t_pdfirmata * x, t_floatarg pin){
@@ -492,13 +479,12 @@ void pdfirmata_pinState(t_pdfirmata * x, t_floatarg pin){
         error("Pin number must between 0-127");
         return;
     }
-    uint8_t * buffer = (uint8_t *)malloc(4 * sizeof(uint8_t));
+    uint8_t buffer[4];
     buffer[0] = 0xF0;
     buffer[1] = 0x6D;
     buffer[2] = _pin;
     buffer[3] = 0xF7;
     writeBuffer(x, buffer, 4);
-    free(buffer);
 }
 
 void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
@@ -526,7 +512,7 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                         error("Pin number must between 0-127");
                         return;
                     }
-                    uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                    uint8_t buffer[9];
                     buffer[0] = 0xF0;
                     buffer[1] = 0x60;
                     buffer[2] = 0x10 + port;
@@ -537,10 +523,9 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                     buffer[7] = txPin;
                     buffer[8] = 0xF7;
                     writeBuffer(x, buffer, 9);
-                    free(buffer);
                 }
                 else{
-                    uint8_t * buffer = (uint8_t *)malloc(7 * sizeof(uint8_t));
+                    uint8_t buffer[7];
                     buffer[0] = 0xF0;
                     buffer[1] = 0x60;
                     buffer[2] = 0x10 + port;
@@ -549,7 +534,6 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                     buffer[5] = (baud >> 14) & 0x7F;
                     buffer[6] = 0xF7;
                     writeBuffer(x, buffer, 7);
-                    free(buffer);
                 }
             }
         }
@@ -672,7 +656,7 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 }
                 if(argc > 3){
                     uint32_t maxBytes = atom_getint(argv + 3);
-                    uint8_t * buffer = (uint8_t *)malloc(7 * sizeof(uint8_t));
+                    uint8_t buffer[7];
                     buffer[0] = 0xF0;
                     buffer[1] = 0x60;
                     buffer[2] = 0x30 | port;
@@ -681,17 +665,15 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                     buffer[5] = (maxBytes >> 7) & 0x7F;
                     buffer[6] = 0xF7;
                     writeBuffer(x, buffer, 7);
-                    free(buffer);
                 }
                 else{
-                    uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                    uint8_t buffer[5];
                     buffer[0] = 0xF0;
                     buffer[1] = 0x60;
                     buffer[2] = 0x30 | port;
                     buffer[3] = readMode;
                     buffer[4] = 0xF7;
                     writeBuffer(x, buffer, 5);
-                    free(buffer);
                 }
             }
         }
@@ -703,13 +685,12 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                     error("Unknown serial port name");
                     return;
                 }
-                uint8_t * buffer = (uint8_t *)malloc(4 * sizeof(uint8_t));
+                uint8_t buffer[4];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x60;
                 buffer[2] = 0x50 | port;
                 buffer[3] = 0xF7;
                 writeBuffer(x, buffer, 4);
-                free(buffer);
             }
         }
         /* serial flush PORT */
@@ -720,13 +701,12 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                     error("Unknown serial port name");
                     return;
                 }
-                uint8_t * buffer = (uint8_t *)malloc(4 * sizeof(uint8_t));
+                uint8_t buffer[4];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x60;
                 buffer[2] = 0x60 | port;
                 buffer[3] = 0xF7;
                 writeBuffer(x, buffer, 4);
-                free(buffer);
             }
         }
         /* serial listen PORT */
@@ -737,13 +717,12 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                     error("Unknown serial port name");
                     return;
                 }
-                uint8_t * buffer = (uint8_t *)malloc(4 * sizeof(uint8_t));
+                uint8_t buffer[4];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x60;
                 buffer[2] = 0x70 | port;
                 buffer[3] = 0xF7;
                 writeBuffer(x, buffer, 4);
-                free(buffer);
             }
         }
     }
@@ -792,14 +771,13 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
         if(strcmp(cmdName, "delay") == 0){
             if(argc > 1){
                 int delay = atom_getfloatarg(1, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                uint8_t buffer[5];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x78;
                 buffer[2] = delay & 0x7F;
                 buffer[3] = (delay >> 7) & 0x7F;
                 buffer[4] = 0xF7;
                 writeBuffer(x, buffer, 5);
-                free(buffer);
             }
         }
         /* I2C config ARG0 (ARG1) (ARG2) ... */
@@ -815,7 +793,6 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 }
                 buffer[argc + 2] = 0xF7;
                 writeBuffer(x, buffer, argc + 3);
-                free(buffer);
             }
         }
     }
@@ -830,7 +807,7 @@ void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 int pin = atom_getfloatarg(1, argc, argv);
                 int minPulse = atom_getfloatarg(2, argc, argv);
                 int maxPulse = atom_getfloatarg(3, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(8 * sizeof(uint8_t));
+                uint8_t buffer[8];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x70;
                 buffer[2] = pin & 0x7F;
@@ -840,7 +817,6 @@ void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 buffer[6] = (maxPulse >> 7) & 0x7F;
                 buffer[7] = 0xF7;
                 writeBuffer(x, buffer, 8);
-                free(buffer);
             }
         }
         /* servo write PIN VALUE */
@@ -849,15 +825,14 @@ void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 int pin = atom_getfloatarg(1, argc, argv);
                 int value = atom_getfloatarg(2, argc, argv);
                 if(pin < 16 && value < 0x4000){
-                    uint8_t * buffer = (uint8_t *)malloc(3 * sizeof(uint8_t));
+                    uint8_t buffer[3];
                     buffer[0] = 0xE0 + pin;
                     buffer[1] = value & 0x7F;
                     buffer[2] = (value >> 7) & 0x7F;
                     writeBuffer(x, buffer, 3);
-                    free(buffer);
                 }
                 else{
-                    uint8_t * buffer = (uint8_t *)malloc(8 * sizeof(uint8_t));
+                    uint8_t buffer[8];
                     buffer[0] = 0xF0;
                     buffer[1] = 0x6F;
                     buffer[2] = pin;
@@ -867,7 +842,6 @@ void pdfirmata_servo(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                     buffer[6] = (value >> 21) & 127;
                     buffer[7] = 0xF7;
                     writeBuffer(x, buffer, 8);
-                    free(buffer);
                 }
             }
         }
@@ -883,7 +857,7 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 int encoder = atom_getfloatarg(1, argc, argv);
                 int pinA = atom_getfloatarg(2, argc, argv);
                 int pinB = atom_getfloatarg(3, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(7 * sizeof(uint8_t));
+                uint8_t buffer[7];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x61;
                 buffer[2] = 0x00;
@@ -892,73 +866,67 @@ void pdfirmata_encoder(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 buffer[5] = pinB & 0x7F;
                 buffer[6] = 0xF7;
                 writeBuffer(x, buffer, 7);
-                free(buffer);
             }
         }
         /* encoder read ENCODER */
         if(strcmp(cmdName, "read") == 0){
             if(argc > 1){
                 int encoder = atom_getfloatarg(1, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                uint8_t buffer[5];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x61;
                 buffer[2] = 0x01;
                 buffer[3] = encoder & 0x7F;
                 buffer[4] = 0xF7;
                 writeBuffer(x, buffer, 5);
-                free(buffer);
             }
         }
         /* encoder readAll */
         if(strcmp(cmdName, "readAll") == 0){
-            uint8_t * buffer = (uint8_t *)malloc(4 * sizeof(uint8_t));
+            uint8_t buffer[4];
             buffer[0] = 0xF0;
             buffer[1] = 0x61;
             buffer[2] = 0x02;
             buffer[3] = 0xF7;
             writeBuffer(x, buffer, 4);
-            free(buffer);
         }
         /* encoder reset ENCODER */
         if(strcmp(cmdName, "reset") == 0){
             if(argc > 1){
                 int encoder = atom_getfloatarg(1, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                uint8_t buffer[5];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x61;
                 buffer[2] = 0x03;
                 buffer[3] = encoder & 0x7F;
                 buffer[4] = 0xF7;
                 writeBuffer(x, buffer, 5);
-                free(buffer);
             }
         }
         /* encoder report ENABLE */
         if(strcmp(cmdName, "report") == 0){
             if(argc > 1){
                 int enable = atom_getfloatarg(1, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                uint8_t buffer[5];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x61;
                 buffer[2] = 0x04;
                 buffer[3] = enable & 0x1;
                 buffer[4] = 0xF7;
                 writeBuffer(x, buffer, 5);
-                free(buffer);
             }
         }
         /* encoder detach ENCODER */
         if(strcmp(cmdName, "detach") == 0){
             if(argc > 1){
                 int encoder = atom_getfloatarg(1, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                uint8_t buffer[5];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x61;
                 buffer[2] = 0x05;
                 buffer[3] = encoder & 0x7F;
                 buffer[4] = 0xF7;
                 writeBuffer(x, buffer, 5);
-                free(buffer);
             }
         }
     }
@@ -981,7 +949,7 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                     if(argc > 8){
                         uint8_t enablePin = atom_getfloatarg(7, argc, argv);
                         uint8_t invert = atom_getfloatarg(8, argc, argv);
-                        uint8_t * buffer = (uint8_t *)malloc(10 * sizeof(uint8_t));
+                        uint8_t buffer[10];
                         buffer[0] = 0xF0;
                         buffer[1] = 0x62;
                         buffer[2] = 0x00;
@@ -993,11 +961,10 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                         buffer[8] = invert & 0x7F;
                         buffer[9] = 0xF7;
                         writeBuffer(x, buffer, 10);
-                        free(buffer);
                     }
                     else if(argc > 7){
                         uint8_t enablePinorInvert = atom_getfloatarg(7, argc, argv);
-                        uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                        uint8_t buffer[9];
                         buffer[0] = 0xF0;
                         buffer[1] = 0x62;
                         buffer[2] = 0x00;
@@ -1008,10 +975,9 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                         buffer[7] = enablePinorInvert & 0x7F;
                         buffer[8] = 0xF7;
                         writeBuffer(x, buffer, 9);
-                        free(buffer);
                     }
                     else{
-                        uint8_t * buffer = (uint8_t *)malloc(8 * sizeof(uint8_t));
+                        uint8_t buffer[8];
                         buffer[0] = 0xF0;
                         buffer[1] = 0x62;
                         buffer[2] = 0x00;
@@ -1021,7 +987,6 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                         buffer[6] = pin2 & 0x7F;
                         buffer[7] = 0xF7;
                         writeBuffer(x, buffer, 8);
-                        free(buffer);
                     }
                 }
                 /* interface is three pin */
@@ -1033,7 +998,7 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                         if(argc > 9){
                             uint8_t enablePin = atom_getfloatarg(8, argc, argv);
                             uint8_t invert = atom_getfloatarg(9, argc, argv);
-                            uint8_t * buffer = (uint8_t *)malloc(11 * sizeof(uint8_t));
+                            uint8_t buffer[11];
                             buffer[0] = 0xF0;
                             buffer[1] = 0x62;
                             buffer[2] = 0x00;
@@ -1046,11 +1011,10 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                             buffer[9] = invert & 0x7F;
                             buffer[10] = 0xF7;
                             writeBuffer(x, buffer, 11);
-                            free(buffer);
                         }
                         else if(argc > 8){
                             uint8_t enablePinorInvert = atom_getfloatarg(8, argc, argv);
-                            uint8_t * buffer = (uint8_t *)malloc(10 * sizeof(uint8_t));
+                            uint8_t buffer[10];
                             buffer[0] = 0xF0;
                             buffer[1] = 0x62;
                             buffer[2] = 0x00;
@@ -1062,10 +1026,9 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                             buffer[8] = enablePinorInvert & 0x7F;
                             buffer[9] = 0xF7;
                             writeBuffer(x, buffer, 10);
-                            free(buffer);
                         }
                         else{
-                            uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                            uint8_t buffer[9];
                             buffer[0] = 0xF0;
                             buffer[1] = 0x62;
                             buffer[2] = 0x00;
@@ -1076,7 +1039,6 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                             buffer[7] = pin3 & 0x7F;
                             buffer[8] = 0xF7;
                             writeBuffer(x, buffer, 9);
-                            free(buffer);
                         }
                     }
                 }
@@ -1089,7 +1051,7 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                         if(argc > 10){
                             uint8_t enablePin = atom_getfloatarg(9, argc, argv);
                             uint8_t invert = atom_getfloatarg(10, argc, argv);
-                            uint8_t * buffer = (uint8_t *)malloc(12 * sizeof(uint8_t));
+                            uint8_t buffer[12];
                             buffer[0] = 0xF0;
                             buffer[1] = 0x62;
                             buffer[2] = 0x00;
@@ -1103,11 +1065,10 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                             buffer[10] = invert & 0x7F;
                             buffer[11] = 0xF7;
                             writeBuffer(x, buffer, 12);
-                            free(buffer);
                         }
                         else if(argc > 9){
                             uint8_t enablePinorInvert = atom_getfloatarg(9, argc, argv);
-                            uint8_t * buffer = (uint8_t *)malloc(11 * sizeof(uint8_t));
+                            uint8_t buffer[11];
                             buffer[0] = 0xF0;
                             buffer[1] = 0x62;
                             buffer[2] = 0x00;
@@ -1120,10 +1081,9 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                             buffer[9] = enablePinorInvert & 0x7F;
                             buffer[10] = 0xF7;
                             writeBuffer(x, buffer, 11);
-                            free(buffer);
                         }
                         else{
-                            uint8_t * buffer = (uint8_t *)malloc(10 * sizeof(uint8_t));
+                            uint8_t buffer[10];
                             buffer[0] = 0xF0;
                             buffer[1] = 0x62;
                             buffer[2] = 0x00;
@@ -1135,7 +1095,6 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                             buffer[8] = pin4 & 0x7F;
                             buffer[9] = 0xF7;
                             writeBuffer(x, buffer, 10);
-                            free(buffer);
                         }
                     }
                 }
@@ -1147,21 +1106,20 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
         if(strcmp(cmdName, "zero") == 0){
             if(argc > 1){
                 uint8_t motor = atom_getfloatarg(1, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                uint8_t buffer[5];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x62;
                 buffer[2] = 0x01;
                 buffer[3] = motor & 0x7F;
                 buffer[4] = 0xF7;
                 writeBuffer(x, buffer, 5);
-                free(buffer);
             }
         }
         if(strcmp(cmdName, "step") == 0){
             if(argc > 2){
                 uint8_t motor = atom_getfloatarg(1, argc, argv);
                 int32_t step = atom_getfloatarg(2, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(10 * sizeof(uint8_t));
+                uint8_t buffer[10];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x62;
                 buffer[2] = 0x02;
@@ -1173,14 +1131,13 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 buffer[8] = (step >> 28) & 0x1F;
                 buffer[9] = 0xF7;
                 writeBuffer(x, buffer, 10);
-                free(buffer);
             }
         }
         if(strcmp(cmdName, "to") == 0){
             if(argc > 2){
                 uint8_t motor = atom_getfloatarg(1, argc, argv);
                 int32_t position = atom_getfloatarg(2, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(10 * sizeof(uint8_t));
+                uint8_t buffer[10];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x62;
                 buffer[2] = 0x03;
@@ -1192,14 +1149,13 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 buffer[8] = (position >> 28) & 0x1F;
                 buffer[9] = 0xF7;
                 writeBuffer(x, buffer, 10);
-                free(buffer);
             }
         }
         if(strcmp(cmdName, "enable") == 0){
             if(argc > 2){
                 uint8_t motor = atom_getfloatarg(1, argc, argv);
                 int32_t state = atom_getfloatarg(2, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(6 * sizeof(uint8_t));
+                uint8_t buffer[6];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x62;
                 buffer[2] = 0x04;
@@ -1207,33 +1163,30 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 buffer[4] = state & 0x7F;
                 buffer[5] = 0xF7;
                 writeBuffer(x, buffer, 6);
-                free(buffer); 
             }
         }
         if(strcmp(cmdName, "stop") == 0){
             if(argc > 1){
                 uint8_t motor = atom_getfloatarg(1, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                uint8_t buffer[5];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x62;
                 buffer[2] = 0x05;
                 buffer[3] = motor & 0x7F;
                 buffer[4] = 0xF7;
                 writeBuffer(x, buffer, 5);
-                free(buffer);
             }
         }
         if(strcmp(cmdName, "position") == 0){
             if(argc > 1){
                 uint8_t motor = atom_getfloatarg(1, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                uint8_t buffer[5];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x62;
                 buffer[2] = 0x06;
                 buffer[3] = motor & 0x7F;
                 buffer[4] = 0xF7;
                 writeBuffer(x, buffer, 5);
-                free(buffer);
             }
         }
         if(strcmp(cmdName, "limit") == 0){
@@ -1243,7 +1196,7 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 uint8_t lowerState = atom_getfloatarg(3, argc, argv);
                 uint8_t upperPin = atom_getfloatarg(4, argc, argv);
                 uint8_t upperState = atom_getfloatarg(5, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                uint8_t buffer[9];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x62;
                 buffer[2] = 0x07;
@@ -1254,7 +1207,6 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 buffer[7] = upperState & 0x7F;
                 buffer[8] = 0xF7;
                 writeBuffer(x, buffer, 9);
-                free(buffer);
             }
         }
         if(strcmp(cmdName, "acceleration") == 0){
@@ -1262,7 +1214,7 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 uint8_t motor = atom_getfloatarg(1, argc, argv);
                 float acceleration = atom_getfloatarg(2, argc, argv);
                 int32_t _acceleration = encodeCustomFloat(acceleration);  
-                uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                uint8_t buffer[9];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x62;
                 buffer[2] = 0x08;
@@ -1273,7 +1225,6 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 buffer[7] = (_acceleration >> 21) & 0x7F;
                 buffer[8] = 0xF7;
                 writeBuffer(x, buffer, 9);
-                free(buffer);
             }
         }
         if(strcmp(cmdName, "speed") == 0){
@@ -1281,7 +1232,7 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 uint8_t motor = atom_getfloatarg(1, argc, argv);
                 float speed = atom_getfloatarg(2, argc, argv);
                 int32_t _speed = encodeCustomFloat(speed);  
-                uint8_t * buffer = (uint8_t *)malloc(9 * sizeof(uint8_t));
+                uint8_t buffer[9];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x62;
                 buffer[2] = 0x08;
@@ -1292,7 +1243,6 @@ void pdfirmata_stepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
                 buffer[7] = (_speed >> 21) & 0x7F;
                 buffer[8] = 0xF7;
                 writeBuffer(x, buffer, 9);
-                free(buffer);
             }
         }
     }
@@ -1354,14 +1304,13 @@ void pdfirmata_multistepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * 
         if(strcmp(cmdName, "stop") == 0){
             if(argc > 1){
                 uint8_t group = atom_getfloatarg(1, argc, argv);
-                uint8_t * buffer = (uint8_t *)malloc(5 * sizeof(uint8_t));
+                uint8_t buffer[5];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x62;
                 buffer[2] = 0x23;
                 buffer[3] = group & 0x7F;
                 buffer[4] = 0xF7;
                 writeBuffer(x, buffer, 5);
-                free(buffer);
             }
         }
     }
@@ -1387,13 +1336,12 @@ void decSysex(t_pdfirmata * x){
             position |= (x->buffer[i++] & 0x7F) << 14;
             position |= (x->buffer[i++] & 0x7F) << 21;
             position |= (x->buffer[i++] & 0x1F) << 28;
-            t_atom * buffer = (t_atom *)malloc(4 * sizeof(t_atom));
+            t_atom buffer[4];
             SETSYMBOL(buffer, gensym("stepper"));
             SETSYMBOL(buffer + 1, gensym("position"));
             SETFLOAT(buffer + 2, stepper);
             SETFLOAT(buffer + 3, position);
             outlet_list(x->decOut, &s_symbol, 4, buffer);
-            free(buffer);
         }
         /* Stepper move complete reply */
         if(x->buffer[1] == 0x0A){
@@ -1404,23 +1352,21 @@ void decSysex(t_pdfirmata * x){
             position |= (x->buffer[i++] & 0x7F) << 14;
             position |= (x->buffer[i++] & 0x7F) << 21;
             position |= (x->buffer[i++] & 0x1F) << 28;
-            t_atom * buffer = (t_atom *)malloc(4 * sizeof(t_atom));
+            t_atom buffer[4];
             SETSYMBOL(buffer, gensym("stepper"));
             SETSYMBOL(buffer + 1, gensym("complete"));
             SETFLOAT(buffer + 2, stepper);
             SETFLOAT(buffer + 3, position);
             outlet_list(x->decOut, &s_symbol, 4, buffer);
-            free(buffer);
         }
         /* MultiStepper move complete reply */
         if(x->buffer[1] == 0x24){
             uint8_t group = x->buffer[2];
-            t_atom * buffer = (t_atom *)malloc(3 * sizeof(t_atom));
+            t_atom buffer[3];
             SETSYMBOL(buffer, gensym("multistepper"));
             SETSYMBOL(buffer + 1, gensym("complete"));
             SETFLOAT(buffer + 2, group);
             outlet_list(x->decOut, &s_symbol, 3, buffer);
-            free(buffer);
         }
     }
     /* Firmware name and version reply */
@@ -1429,7 +1375,7 @@ void decSysex(t_pdfirmata * x){
         uint16_t counter = 0;
         uint8_t majorVersion = x->buffer[i++];
         uint8_t minorVersion = x->buffer[i++];
-        t_atom * buffer = (t_atom *)malloc(4 * sizeof(t_atom));
+        t_atom buffer[4];
         uint16_t firmwareChar = 0;
         char * firmwareName = (char *)malloc((((x->rawCounter - 3) / 2) + 1) * sizeof(char));
         SETSYMBOL(buffer, gensym("firmware"));
@@ -1449,14 +1395,13 @@ void decSysex(t_pdfirmata * x){
         firmwareName[counter] = '\0';
         SETSYMBOL(buffer + 3, gensym(firmwareName));
         outlet_list(x->decOut, &s_symbol, 4, buffer);
-        free(buffer);
         free(firmwareName);
     }
     /* Firmata string */
     if(x->buffer[0] == 0x71){
         uint16_t i = 1;
         uint16_t counter = 0;
-        t_atom * buffer = (t_atom *)malloc(2 * sizeof(t_atom));
+        t_atom buffer[2];
         uint16_t stringChar = 0;
         char * stringName = (char *)malloc((((x->rawCounter - 1) / 2) + 1) * sizeof(char));
         SETSYMBOL(buffer, gensym("string"));
@@ -1474,14 +1419,13 @@ void decSysex(t_pdfirmata * x){
         stringName[counter] = '\0';
         SETSYMBOL(buffer + 1, gensym(stringName));
         outlet_list(x->decOut, &s_symbol, 2, buffer);
-        free(buffer);
         free(stringName);
     }
     /* Report encoder(s) position */
     if(x->buffer[0] == 0x61){
         uint8_t encoderCount = (x->rawCounter - 1) / 5; // (counter - first byte (0x61)) / report length
         uint16_t i = 0;
-        t_atom * buffer = (t_atom *)malloc(3 * sizeof(t_atom));
+        t_atom buffer[3];
         while(i < encoderCount){
             uint8_t encoder = x->buffer[(i * 5) + 1] & 0x3F;
             uint8_t direction = (x->buffer[(i * 5) + 1] >> 6) & 0x1;
@@ -1496,13 +1440,12 @@ void decSysex(t_pdfirmata * x){
             outlet_list(x->decOut, &s_list, 3, buffer);
             i++;
         }
-        free(buffer);
     }
     /* Analog mapping response */
     if(x->buffer[0] == 0x6A){
         uint8_t analog = 0;
         uint16_t i = 1;
-        t_atom * buffer = (t_atom *)malloc(3 * sizeof(t_atom));
+        t_atom buffer[3];
         while(i < x->rawCounter){
             analog = x->buffer[i + 1];
             SETSYMBOL(buffer, gensym("analogMap"));
@@ -1511,7 +1454,6 @@ void decSysex(t_pdfirmata * x){
             outlet_list(x->decOut, &s_list, 3, buffer);
             i++;
         }
-        free(buffer);
     }
     /* Capabilities response */
     if(x->buffer[0] == 0x6C){
@@ -1520,7 +1462,7 @@ void decSysex(t_pdfirmata * x){
         uint8_t resolution = 0;
         uint8_t pin = 0;
         uint16_t counter = 0;
-        t_atom * buffer = (t_atom *)malloc(4 * sizeof(t_atom));
+        t_atom buffer[4];
         SETSYMBOL(buffer, gensym("capability"));
         SETFLOAT(buffer + 1, pin);
         while(i < x->rawCounter){
@@ -1543,7 +1485,6 @@ void decSysex(t_pdfirmata * x){
             }
             i++;
         }
-        free(buffer);
     }
     /* Pin state response */
     if(x->buffer[0] == 0x6E){
@@ -1551,7 +1492,7 @@ void decSysex(t_pdfirmata * x){
         uint8_t pin = x->buffer[i++];
         uint8_t mode = x->buffer[i++];
         uint32_t state = 0;
-        t_atom * buffer = (t_atom *)malloc(4 * sizeof(t_atom));
+        t_atom buffer[4];
         while(i < x->rawCounter){
             state |= (x->buffer[i] & 0x7F) << (7 * (i - 3));
             i++;
@@ -1561,7 +1502,6 @@ void decSysex(t_pdfirmata * x){
         SETSYMBOL(buffer + 2, gensym(pinModes[mode]));
         SETFLOAT(buffer + 3, state);
         outlet_list(x->decOut, &s_symbol, 4, buffer);
-        free(buffer);
     }
     /* Serial read response */
     if(x->buffer[0] == 0x60){
@@ -1584,7 +1524,6 @@ void decSysex(t_pdfirmata * x){
             i++;
         }
         outlet_list(x->decOut, &s_symbol, (((x->rawCounter - 2) / 2) + 2), buffer);
-        free(buffer);
     }
     /* serial read response converted to string */
     if(x->buffer[0] == 0x60){
@@ -1592,7 +1531,7 @@ void decSysex(t_pdfirmata * x){
         uint16_t value = 0;
         uint16_t counter = 0;
         uint8_t port = x->buffer[i++] & 0x0F;
-        t_atom * buffer = (t_atom *)malloc(3 * sizeof(t_atom));
+        t_atom buffer[3];
         char * stringBuffer = (char *)malloc((((x->rawCounter - 2) / 2) + 1) * sizeof(char));
         SETSYMBOL(buffer, gensym("serialReplyString"));
         SETSYMBOL(buffer + 1, gensym(serialPorts[port]));
@@ -1610,7 +1549,6 @@ void decSysex(t_pdfirmata * x){
         stringBuffer[counter] = '\0';
         SETSYMBOL(buffer + 2, gensym(stringBuffer));
         outlet_list(x->decOut, &s_symbol, 3, buffer);
-        free(buffer);
         free(stringBuffer);
     }
     /* I2C reply */
