@@ -34,7 +34,7 @@ typedef struct _pdfirmata{
 
 // function protoypes
 
-void writeBuffer(t_pdfirmata * x, uint8_t * buffer, uint8_t bytec);
+void writeBuffer(t_pdfirmata * x, uint8_t * buffer, uint16_t bytec);
 uint8_t serialPort(const char * portName);
 
 void pdfirmata_onRawData(t_pdfirmata * x, t_floatarg _f);
@@ -63,7 +63,7 @@ void decSysex(t_pdfirmata *x);
 
 // !function prototypes
 
-/*  Custom float functions. These functions adapted from firmata.js implementation
+/*  Custom float and 7bit functions. These functions adapted from firmata.js implementation
     firmata.js licensed under MIT https://github.com/firmata/firmata.js
     Copyright (c) 2011-2015 Julian Gautier julian.gautier@alumni.neumont.edu
     Copyright (c) 2015-2019 The Firmata.js Authors (see AUTHORS.md in above link) */
@@ -116,7 +116,60 @@ float decodeCustomFloat(unsigned int input) {
     return resultf;
 }
 
-// !Custom float functions
+uint8_t * to7bit(uint8_t * src, uint16_t length){
+    // we need 8 x 7-bit for every 7 x 8-bit words
+    uint16_t i_s = 0, i_d = 0;
+    uint16_t destLength = length + (length / 7);
+    uint8_t * buffer = (uint8_t *)malloc((destLength + 2) * sizeof(uint8_t));
+    buffer[i_d++] = destLength & 0xFF;
+    buffer[i_d++] = (destLength >> 8) & 0xFF;
+    uint8_t shift = 0;
+    uint8_t previous = 0;
+    while(i_s < length){
+        if(shift == 0){
+            buffer[i_d++] = src[i_s] & 0x7F;
+            shift++;
+            previous = src[i_s] >> 7;
+        }
+        else{
+            buffer[i_d++] = ((src[i_s] << shift) & 0x7f) | previous;
+            if(shift == 6){
+                buffer[i_d++] = src[i_s] >> 1;
+                shift = 0;
+            }
+            else{
+                shift++;
+                previous = src[i_s] >> (8 - shift);
+            }
+        }
+        i_s++;
+    }
+
+    if(shift > 0){
+        buffer[i_d++] = previous;
+    }
+
+    return buffer;
+}
+
+uint8_t * from7bit(uint8_t * src, uint16_t length){
+    uint16_t destLength = length - (length >> 3);
+    uint8_t * buffer = (uint8_t *)malloc((destLength + 2) * sizeof(uint8_t));
+    buffer[0] = destLength & 0xFF;
+    buffer[1] = (destLength >> 8) & 0xFF;
+    uint16_t i = 0;
+    
+    for(i = 0; i < destLength; i++){
+        uint16_t j = i << 3;
+        uint16_t pos = (j / 7);
+        uint16_t shift = j % 7;
+        buffer[i + 2] = (src[pos] >> shift) | ((src[pos + 1] << (7 - shift)) & 0xFF);
+    }
+
+    return buffer;
+}
+
+// !Custom float and 7bit functions
 
 // Constants
 
@@ -217,8 +270,8 @@ void pdfirmata_setup(void){
     class_addmethod(pdfirmata_class, (t_method)pdfirmata_scheduler, gensym("scheduler"), A_GIMME, 0);
 }
 
-void writeBuffer(t_pdfirmata * x, uint8_t * buffer, uint8_t bytec){
-    uint8_t i = 0;
+void writeBuffer(t_pdfirmata * x, uint8_t * buffer, uint16_t bytec){
+    uint16_t i = 0;
     while(i < bytec){
         outlet_float(x->rawOut, buffer[i]);
         i++;
@@ -547,7 +600,7 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 }
                 const char ** stringNames = (const char **)malloc((argc - 2) * sizeof(const char **));
                 uint8_t stringLengths = 0;
-                uint8_t i = 2;
+                uint16_t i = 2;
                 while(i < argc){
                     stringNames[i - 2] = atom_getsymbolarg(i, argc, argv)->s_name;
                     stringLengths += strlen(stringNames[i - 2]);
@@ -587,7 +640,7 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 }
                 const char ** stringNames = (const char **)malloc((argc - 2) * sizeof(const char **));
                 uint8_t stringLengths = 0;
-                uint8_t i = 2;
+                uint16_t i = 2;
                 while(i < argc){
                     stringNames[i - 2] = atom_getsymbolarg(i, argc, argv)->s_name;
                     stringLengths += strlen(stringNames[i - 2]);
@@ -630,7 +683,7 @@ void pdfirmata_serial(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 buffer[0] = 0xF0;
                 buffer[1] = 0x60;
                 buffer[2] = 0x20 | port;
-                uint8_t i = 2;
+                uint16_t i = 2;
                 while(i < argc){
                     buffer[((i - 2) * 2) + 3] = atom_getint(argv + i) & 0x7F;
                     buffer[((i - 2) * 2) + 4] = (atom_getint(argv + i) >> 7) & 0x7F;
@@ -756,7 +809,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 buffer[1] = 0x76;
                 buffer[2] = LSB & 0x7F;
                 buffer[3] = MSB & 0x7F;
-                uint8_t i = 4;
+                uint16_t i = 4;
                 while(i < argc){
                     buffer[((i - 4) * 2) + 4] = atom_getint(argv + i) & 0x7F;
                     buffer[((i - 4) * 2) + 5] = (atom_getint(argv + i) >> 7) & 0x7F;
@@ -786,7 +839,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 uint8_t * buffer = (uint8_t *)malloc((argc + 3) * sizeof(uint8_t));
                 buffer[0] = 0xF0;
                 buffer[1] = 0x78;
-                uint8_t i = 1;
+                uint16_t i = 1;
                 while(i < argc){
                     buffer[i + 1] = atom_getint(argv + i) & 0x7F;
                     i++;
@@ -1260,7 +1313,7 @@ void pdfirmata_multistepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * 
                 buffer[1] = 0x62;
                 buffer[2] = 0x20;
                 buffer[3] = group & 0x7F;
-                uint8_t i = 2;
+                uint16_t i = 2;
                 while(i < argc){
                     buffer[i + 2] = atom_getfloatarg(i, argc, argv);
                     i++;
@@ -1276,7 +1329,7 @@ void pdfirmata_multistepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * 
                 uint8_t group = atom_getfloatarg(1, argc, argv);
                 uint8_t positionCount = argc - 2;
                 int32_t * positions = (int32_t *)malloc(positionCount * sizeof(int32_t));
-                uint8_t i = 2;
+                uint16_t i = 2;
                 while(i < argc){
                     positions[i - 2] = atom_getfloatarg(i, argc, argv);
                     i++;
@@ -1317,7 +1370,156 @@ void pdfirmata_multistepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * 
 }
 
 void pdfirmata_onewire(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
-    error("Not yet implemented");
+    if(argc > 0){
+        const char * cmdName = atom_getsymbolarg(0, argc, argv)->s_name;
+        if(strcmp(cmdName, "search") == 0){
+            if(argc > 1){
+                uint8_t pin = atom_getfloatarg(1, argc, argv);
+                uint8_t buffer[5];
+                buffer[0] = 0xF0;
+                buffer[1] = 0x73;
+                buffer[2] = 0x40;
+                buffer[3] = pin & 0x7F;
+                buffer[4] = 0xF7;
+                writeBuffer(x, buffer, 5);
+            }
+        }
+        if(strcmp(cmdName, "alarmed") == 0){
+            if(argc > 1){
+                uint8_t pin = atom_getfloatarg(1, argc, argv);
+                uint8_t buffer[5];
+                buffer[0] = 0xF0;
+                buffer[1] = 0x73;
+                buffer[2] = 0x44;
+                buffer[3] = pin & 0x7F;
+                buffer[4] = 0xF7;
+                writeBuffer(x, buffer, 5);
+            }
+        }
+        if(strcmp(cmdName, "config") == 0){
+            if(argc > 2){
+                uint8_t pin = atom_getfloatarg(1, argc, argv);
+                uint8_t power = atom_getfloatarg(2, argc, argv);
+                uint8_t buffer[6];
+                buffer[0] = 0xF0;
+                buffer[1] = 0x73;
+                buffer[2] = 0x44;
+                buffer[3] = pin & 0x7F;
+                buffer[4] = power & 0x1;
+                buffer[5] = 0xF7;
+                writeBuffer(x, buffer, 6);
+            }
+        }
+        if(strcmp(cmdName, "reset") == 0){
+            if(argc > 1){
+                uint8_t pin = atom_getfloatarg(1, argc, argv);
+                uint8_t buffer[5];
+                buffer[0] = 0xF0;
+                buffer[1] = 0x73;
+                buffer[2] = 0b00000001;
+                buffer[3] = pin & 0x7F;
+                buffer[4] = 0xF7;
+                writeBuffer(x, buffer, 5);
+            }
+        }
+        if(strcmp(cmdName, "skip") == 0){
+            if(argc > 1){
+                uint8_t pin = atom_getfloatarg(1, argc, argv);
+                uint8_t buffer[5];
+                buffer[0] = 0xF0;
+                buffer[1] = 0x73;
+                buffer[2] = 0b00000010;
+                buffer[3] = pin & 0x7F;
+                buffer[4] = 0xF7;
+                writeBuffer(x, buffer, 5);
+            }
+        }
+        if(strcmp(cmdName, "select") == 0){
+            if(argc > 2){
+                uint8_t pin = atom_getfloatarg(1, argc, argv);
+                uint64_t address = atom_getfloatarg(2, argc, argv);
+                uint8_t buffer[14];
+                buffer[0] = 0xF0;
+                buffer[1] = 0x73;
+                buffer[2] = 0b00000100;
+                buffer[3] = pin & 0x7F;
+                buffer[4] = address & 0x7F;
+                buffer[5] = (address >> 7) & 0x7F;
+                buffer[6] = (address >> 14) & 0x7F;
+                buffer[7] = (address >> 21) & 0x7F;
+                buffer[8] = (address >> 28) & 0x7F;
+                buffer[9] = (address >> 35) & 0x7F;
+                buffer[10] = (address >> 42) & 0x7F;
+                buffer[11] = (address >> 49) & 0x7F;
+                buffer[12] = (address >> 56) & 0x7F;
+                buffer[13] = 0xF7;
+                writeBuffer(x, buffer, 14);
+            }
+        }
+        /* I assume correlationid is unique id represent which read command is returned with some value
+           For now let the user choose this number */
+        if(strcmp(cmdName, "read")){
+            if(argc > 3){
+                uint8_t pin = atom_getfloatarg(1, argc, argv);
+                uint16_t numofbytes = atom_getfloatarg(2, argc, argv);
+                uint16_t correlationid = atom_getfloatarg(3, argc, argv);
+                uint8_t buffer[9];
+                buffer[0] = 0xF0;
+                buffer[1] = 0x73;
+                buffer[2] = 0b00001000;
+                buffer[3] = pin & 0x7F;
+                buffer[4] = numofbytes & 0x7F;
+                buffer[5] = (numofbytes >> 7) & 0x7F;
+                buffer[6] = correlationid & 0x7F;
+                buffer[7] = (correlationid >> 7) & 0x7F;
+                buffer[8] = 0xF7;
+                writeBuffer(x, buffer, 9);
+            }
+        }
+        if(strcmp(cmdName, "delay") == 0){
+            if(argc > 2){
+                uint8_t pin = atom_getfloatarg(1, argc, argv);
+                uint32_t delay = atom_getfloatarg(2, argc, argv);
+                uint8_t buffer[9];
+                buffer[0] = 0xF0;
+                buffer[1] = 0x73;
+                buffer[2] = 0b00010000;
+                buffer[3] = pin & 0x7F;
+                buffer[4] = delay & 0x7F;
+                buffer[5] = (delay >> 7) & 0x7F;
+                buffer[6] = (delay >> 14) & 0x7F;
+                buffer[7] = (delay >> 21) & 0x7F;
+                buffer[8] = 0xF7;
+                writeBuffer(x, buffer, 9);
+            }
+        }
+        if(strcmp(cmdName, "write") == 0){
+            if(argc > 2){
+                uint8_t pin = atom_getfloatarg(1, argc, argv);
+                uint8_t * userbytes = (uint8_t *)malloc((argc - 2) * sizeof(uint8_t));
+                uint16_t i = 2;
+                while(i < argc){
+                    userbytes[i - 2] = atom_getfloatarg(i, argc, argv);
+                    i++;
+                }
+                uint8_t * result = to7bit(userbytes, (argc - 2));
+                uint16_t resultLength = result[0] | (result[1] << 8);
+                uint8_t * buffer = (uint8_t *)malloc((resultLength + 5) * sizeof(uint8_t));
+                buffer[0] = 0xF0;
+                buffer[1] = 0x73;
+                buffer[2] = 0b00100000;
+                buffer[3] = pin & 0x7F;
+                for(i = 0; i < resultLength; i++){
+                    buffer[i + 4] = result[i];
+                }
+                buffer[resultLength + 4] = 0xF7;
+                writeBuffer(x, buffer, resultLength + 5);
+                free(buffer);
+                free(result);
+                free(userbytes);
+            }
+        }
+    }
 }
 
 void pdfirmata_scheduler(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
@@ -1425,7 +1627,7 @@ void decSysex(t_pdfirmata * x){
     if(x->buffer[0] == 0x61){
         uint8_t encoderCount = (x->rawCounter - 1) / 5; // (counter - first byte (0x61)) / report length
         uint16_t i = 0;
-        t_atom buffer[3];
+        t_atom buffer[4];
         while(i < encoderCount){
             uint8_t encoder = x->buffer[(i * 5) + 1] & 0x3F;
             uint8_t direction = (x->buffer[(i * 5) + 1] >> 6) & 0x1;
@@ -1434,10 +1636,11 @@ void decSysex(t_pdfirmata * x){
             position |= ((int32_t)x->buffer[(i * 5) + 4] & 0x7F) << 14;
             position |= ((int32_t)x->buffer[(i * 5) + 5] & 0x7F) << 21;
             position *= direction == 0 ? 1 : -1;
-            SETSYMBOL(buffer, gensym("encoderReply"));
-            SETFLOAT(buffer + 1, encoder);
-            SETFLOAT(buffer + 2, position);
-            outlet_list(x->decOut, &s_list, 3, buffer);
+            SETSYMBOL(buffer, gensym("encoder"));
+            SETSYMBOL(buffer + 1, gensym("reply"));
+            SETFLOAT(buffer + 2, encoder);
+            SETFLOAT(buffer + 3, position);
+            outlet_list(x->decOut, &s_list, 4, buffer);
             i++;
         }
     }
@@ -1507,11 +1710,12 @@ void decSysex(t_pdfirmata * x){
     if(x->buffer[0] == 0x60){
         uint16_t i = 1;
         uint16_t value = 0;
-        uint16_t counter = 0;
         uint8_t port = x->buffer[i++] & 0x0F;
-        t_atom * buffer = (t_atom *)malloc((((x->rawCounter - 2) / 2) + 2) * sizeof(t_atom));
-        SETSYMBOL(buffer, gensym("serialReply"));
-        SETSYMBOL(buffer + 1, gensym(serialPorts[port]));
+        t_atom * buffer = (t_atom *)malloc((((x->rawCounter - 2) / 2) + 3) * sizeof(t_atom));
+        SETSYMBOL(buffer, gensym("serial"));
+        SETSYMBOL(buffer + 1, gensym("reply"));
+        SETSYMBOL(buffer + 2, gensym(serialPorts[port]));
+        uint16_t counter = 3;
         while(i < x->rawCounter){
             if((i % 2) == 0){
                 value = x->buffer[i] & 0x7F;
@@ -1529,12 +1733,13 @@ void decSysex(t_pdfirmata * x){
     if(x->buffer[0] == 0x60){
         uint16_t i = 1;
         uint16_t value = 0;
-        uint16_t counter = 0;
         uint8_t port = x->buffer[i++] & 0x0F;
-        t_atom buffer[3];
+        t_atom buffer[4];
         char * stringBuffer = (char *)malloc((((x->rawCounter - 2) / 2) + 1) * sizeof(char));
         SETSYMBOL(buffer, gensym("serialReplyString"));
-        SETSYMBOL(buffer + 1, gensym(serialPorts[port]));
+        SETSYMBOL(buffer + 1, gensym("string"));
+        SETSYMBOL(buffer + 2, gensym(serialPorts[port]));
+        uint16_t counter = 0;
         while(i < x->rawCounter){
             if((i % 2) == 0){
                 value = x->buffer[i] & 0x7F;
@@ -1547,9 +1752,76 @@ void decSysex(t_pdfirmata * x){
             i++;
         }
         stringBuffer[counter] = '\0';
-        SETSYMBOL(buffer + 2, gensym(stringBuffer));
-        outlet_list(x->decOut, &s_symbol, 3, buffer);
+        SETSYMBOL(buffer + 3, gensym(stringBuffer));
+        outlet_list(x->decOut, &s_symbol, 4, buffer);
         free(stringBuffer);
+    }
+    /* OneWire Reply */
+    if(x->buffer[0] == 0x73){
+        /* Normal Search Reply */
+        if(x->buffer[1] == 0x42){
+            uint8_t pin = x->buffer[2];
+            uint8_t deviceCount = (x->rawCounter - 3) >> 3;
+            t_atom * buffer = (t_atom *)malloc((deviceCount + 2) * sizeof(t_atom));
+            SETSYMBOL(buffer, gensym("onewire"));
+            SETSYMBOL(buffer + 1, gensym("search"));
+            uint8_t i = 0;
+            while(i < deviceCount){
+                uint64_t address = x->buffer[(i * 8) + 3];
+                address |= (x->buffer[(i * 8) + 4] & 0x7F) << 7;
+                address |= (x->buffer[(i * 8) + 5] & 0x7F) << 14;
+                address |= (x->buffer[(i * 8) + 6] & 0x7F) << 21;
+                address |= (x->buffer[(i * 8) + 7] & 0x7F) << 28;
+                address |= (x->buffer[(i * 8) + 8] & 0x7F) << 35;
+                address |= (x->buffer[(i * 8) + 9] & 0x7F) << 42;
+                address |= (x->buffer[(i * 8) + 10] & 0x7F) << 49;
+                address |= (x->buffer[(i * 8) + 11] & 0x7F) << 56;
+                SETFLOAT(buffer + i + 2, address);
+                i++;
+            }
+            outlet_list(x->decOut, &s_symbol, deviceCount + 2, buffer);
+            free(buffer);
+        }
+        /* Alarmed Search Reply */
+        if(x->buffer[1] == 0x45){
+            uint8_t pin = x->buffer[2];
+            uint8_t deviceCount = (x->rawCounter - 3) >> 3;
+            t_atom * buffer = (t_atom *)malloc((deviceCount + 2) * sizeof(t_atom));
+            SETSYMBOL(buffer, gensym("onewire"));
+            SETSYMBOL(buffer + 1, gensym("alarmed"));
+            uint8_t i = 0;
+            while(i < deviceCount){
+                uint64_t address = x->buffer[(i * 8) + 3];
+                address |= (x->buffer[(i * 8) + 4] & 0x7F) << 7;
+                address |= (x->buffer[(i * 8) + 5] & 0x7F) << 14;
+                address |= (x->buffer[(i * 8) + 6] & 0x7F) << 21;
+                address |= (x->buffer[(i * 8) + 7] & 0x7F) << 28;
+                address |= (x->buffer[(i * 8) + 8] & 0x7F) << 35;
+                address |= (x->buffer[(i * 8) + 9] & 0x7F) << 42;
+                address |= (x->buffer[(i * 8) + 10] & 0x7F) << 49;
+                address |= (x->buffer[(i * 8) + 11] & 0x7F) << 56;
+                SETFLOAT(buffer + i + 2, address);
+                i++;
+            }
+            outlet_list(x->decOut, &s_symbol, deviceCount + 2, buffer);
+            free(buffer);
+        }
+        /* Onewire Read Reply */
+        if(x->buffer[1] == 0x42){
+            uint8_t pin = x->buffer[2];
+            uint8_t * result = from7bit(&x->buffer[3], x->rawCounter - 3);
+            uint16_t resultLength = result[0] | (result[1] << 8);
+            t_atom * buffer = (t_atom *)malloc((resultLength + 2) * sizeof(t_atom));
+            SETSYMBOL(buffer, gensym("onewire"));
+            SETSYMBOL(buffer + 1, gensym("reply"));
+            uint16_t i;
+            for(i = 0; i < resultLength; i++){
+                SETFLOAT(buffer + i + 2, result[i]);
+            }
+            outlet_list(x->decOut, &s_symbol, resultLength + 1, buffer);
+            free(buffer);
+        }
+        
     }
     /* I2C reply */
     if(x->buffer[0] == 0x77){
@@ -1559,11 +1831,12 @@ void decSysex(t_pdfirmata * x){
         slaveAddress |= (x->buffer[i++] & 0x7F) << 7;
         uint16_t registerAddress = x->buffer[i++] & 0x7F;
         registerAddress |= (x->buffer[i++] & 0x7F) << 7;
-        t_atom * buffer = (t_atom *)malloc((((x->rawCounter - 5) / 2) + 3) * sizeof(t_atom));
-        SETSYMBOL(buffer, gensym("I2CReply"));
-        SETFLOAT(buffer + 1, slaveAddress);
-        SETFLOAT(buffer + 2, registerAddress);
-        uint16_t counter = 3;
+        t_atom * buffer = (t_atom *)malloc((((x->rawCounter - 5) / 2) + 4) * sizeof(t_atom));
+        SETSYMBOL(buffer, gensym("I2C"));
+        SETSYMBOL(buffer + 1, gensym("reply"));
+        SETFLOAT(buffer + 2, slaveAddress);
+        SETFLOAT(buffer + 3, registerAddress);
+        uint16_t counter = 4;
         while(i < x->rawCounter){
             if((i - 5) % 2 == 0){
                 value = x->buffer[i];
@@ -1575,7 +1848,7 @@ void decSysex(t_pdfirmata * x){
             }
             i++;
         }
-        outlet_list(x->decOut, &s_symbol, (((x->rawCounter - 5) / 2) + 3), buffer);
+        outlet_list(x->decOut, &s_symbol, (((x->rawCounter - 5) / 2) + 4), buffer);
         free(buffer);
     }
 }
