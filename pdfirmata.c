@@ -216,7 +216,7 @@ const uint8_t serialPortsLength = sizeof(serialPorts) / sizeof(serialPorts[0]);
 void * pdfirmata_new(t_floatarg bufferSize){
     t_pdfirmata * x = (t_pdfirmata *)pd_new(pdfirmata_class);
 
-    if(bufferSize < 1) bufferSize = 256;
+    if(bufferSize < 1) bufferSize = 1024;
 
     x->buffer = (uint8_t *)malloc(bufferSize * sizeof(uint8_t));
 
@@ -1762,48 +1762,50 @@ void decSysex(t_pdfirmata * x){
         if(x->buffer[1] == 0x42){
             uint8_t pin = x->buffer[2];
             uint8_t deviceCount = (x->rawCounter - 3) >> 3;
-            t_atom * buffer = (t_atom *)malloc((deviceCount + 2) * sizeof(t_atom));
+            t_atom * buffer = (t_atom *)malloc((deviceCount + 3) * sizeof(t_atom));
             SETSYMBOL(buffer, gensym("onewire"));
             SETSYMBOL(buffer + 1, gensym("search"));
+            SETFLOAT(buffer + 2, pin);
             uint8_t i = 0;
             while(i < deviceCount){
-                uint64_t address = x->buffer[(i * 8) + 3];
-                address |= (x->buffer[(i * 8) + 4] & 0x7F) << 7;
-                address |= (x->buffer[(i * 8) + 5] & 0x7F) << 14;
-                address |= (x->buffer[(i * 8) + 6] & 0x7F) << 21;
-                address |= (x->buffer[(i * 8) + 7] & 0x7F) << 28;
-                address |= (x->buffer[(i * 8) + 8] & 0x7F) << 35;
-                address |= (x->buffer[(i * 8) + 9] & 0x7F) << 42;
-                address |= (x->buffer[(i * 8) + 10] & 0x7F) << 49;
-                address |= (x->buffer[(i * 8) + 11] & 0x7F) << 56;
-                SETFLOAT(buffer + i + 2, address);
+                uint64_t address = (uint64_t)x->buffer[(i * 8) + 3];
+                address |= ((uint64_t)x->buffer[(i * 8) + 4] & 0x7F) << 7;
+                address |= ((uint64_t)x->buffer[(i * 8) + 5] & 0x7F) << 14;
+                address |= ((uint64_t)x->buffer[(i * 8) + 6] & 0x7F) << 21;
+                address |= ((uint64_t)x->buffer[(i * 8) + 7] & 0x7F) << 28;
+                address |= ((uint64_t)x->buffer[(i * 8) + 8] & 0x7F) << 35;
+                address |= ((uint64_t)x->buffer[(i * 8) + 9] & 0x7F) << 42;
+                address |= ((uint64_t)x->buffer[(i * 8) + 10] & 0x7F) << 49;
+                address |= ((uint64_t)x->buffer[(i * 8) + 11] & 0x7F) << 56;
+                SETFLOAT(buffer + i + 3, address);
                 i++;
             }
-            outlet_list(x->decOut, &s_symbol, deviceCount + 2, buffer);
+            outlet_list(x->decOut, &s_symbol, deviceCount + 3, buffer);
             free(buffer);
         }
         /* Alarmed Search Reply */
         if(x->buffer[1] == 0x45){
             uint8_t pin = x->buffer[2];
             uint8_t deviceCount = (x->rawCounter - 3) >> 3;
-            t_atom * buffer = (t_atom *)malloc((deviceCount + 2) * sizeof(t_atom));
+            t_atom * buffer = (t_atom *)malloc((deviceCount + 3) * sizeof(t_atom));
             SETSYMBOL(buffer, gensym("onewire"));
             SETSYMBOL(buffer + 1, gensym("alarmed"));
+            SETFLOAT(buffer + 2, pin);
             uint8_t i = 0;
             while(i < deviceCount){
-                uint64_t address = x->buffer[(i * 8) + 3];
-                address |= (x->buffer[(i * 8) + 4] & 0x7F) << 7;
-                address |= (x->buffer[(i * 8) + 5] & 0x7F) << 14;
-                address |= (x->buffer[(i * 8) + 6] & 0x7F) << 21;
-                address |= (x->buffer[(i * 8) + 7] & 0x7F) << 28;
-                address |= (x->buffer[(i * 8) + 8] & 0x7F) << 35;
-                address |= (x->buffer[(i * 8) + 9] & 0x7F) << 42;
-                address |= (x->buffer[(i * 8) + 10] & 0x7F) << 49;
-                address |= (x->buffer[(i * 8) + 11] & 0x7F) << 56;
-                SETFLOAT(buffer + i + 2, address);
+                uint64_t address = (uint64_t)x->buffer[(i * 8) + 3];
+                address |= ((uint64_t)x->buffer[(i * 8) + 4] & 0x7F) << 7;
+                address |= ((uint64_t)x->buffer[(i * 8) + 5] & 0x7F) << 14;
+                address |= ((uint64_t)x->buffer[(i * 8) + 6] & 0x7F) << 21;
+                address |= ((uint64_t)x->buffer[(i * 8) + 7] & 0x7F) << 28;
+                address |= ((uint64_t)x->buffer[(i * 8) + 8] & 0x7F) << 35;
+                address |= ((uint64_t)x->buffer[(i * 8) + 9] & 0x7F) << 42;
+                address |= ((uint64_t)x->buffer[(i * 8) + 10] & 0x7F) << 49;
+                address |= ((uint64_t)x->buffer[(i * 8) + 11] & 0x7F) << 56;
+                SETFLOAT(buffer + i + 3, address);
                 i++;
             }
-            outlet_list(x->decOut, &s_symbol, deviceCount + 2, buffer);
+            outlet_list(x->decOut, &s_symbol, deviceCount + 3, buffer);
             free(buffer);
         }
         /* Onewire Read Reply */
@@ -1811,14 +1813,15 @@ void decSysex(t_pdfirmata * x){
             uint8_t pin = x->buffer[2];
             uint8_t * result = from7bit(&x->buffer[3], x->rawCounter - 3);
             uint16_t resultLength = result[0] | (result[1] << 8);
-            t_atom * buffer = (t_atom *)malloc((resultLength + 2) * sizeof(t_atom));
+            t_atom * buffer = (t_atom *)malloc((resultLength + 3) * sizeof(t_atom));
             SETSYMBOL(buffer, gensym("onewire"));
             SETSYMBOL(buffer + 1, gensym("reply"));
+            SETFLOAT(buffer + 2, pin);
             uint16_t i;
             for(i = 0; i < resultLength; i++){
                 SETFLOAT(buffer + i + 2, result[i]);
             }
-            outlet_list(x->decOut, &s_symbol, resultLength + 1, buffer);
+            outlet_list(x->decOut, &s_symbol, resultLength + 3, buffer);
             free(buffer);
         }
         
