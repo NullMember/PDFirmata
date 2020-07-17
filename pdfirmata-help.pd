@@ -1,12 +1,12 @@
-#N canvas 290 197 687 418 12;
-#X obj 192 223 pdfirmata;
-#X obj 58 223 comport 1 57600;
+#N canvas 753 189 825 537 12;
+#X obj 67 224 pdfirmata;
+#X obj 151 224 comport 1 57600;
 #X obj 114 350 pdfirmata;
 #X text 54 321 Command In;
 #X text 171 322 RAW In;
-#X text 58 379 RAW Out;
-#X text 171 376 Response Out;
-#X obj 192 184 r firmatacmd;
+#X text 173 373 RAW Out;
+#X text 56 374 Response Out;
+#X obj 67 185 r firmatacmd;
 #N canvas 925 131 520 300 pinMode 0;
 #X msg 27 35 pinMode 13 INPUT;
 #X msg 27 65 pinMode 13 OUTPUT;
@@ -50,7 +50,7 @@
 #X msg 567 69 pinRead 13;
 #X text 565 40 pinRead PIN;
 #X obj 567 133 s firmatacmd;
-#X obj 252 256 print;
+#X obj 67 256 print;
 #N canvas 1117 193 531 656 serial 0;
 #X msg 18 75 serial config HW0 115200 4 5;
 #X text 15 31 serial config PORT BAUD (RX) (TX);
@@ -119,14 +119,96 @@ Continuously \, rw : Read Write;
 #X text 21 268 encoder detach ENCODER;
 #X msg 23 289 encoder detach 0;
 #X restore 317 317 pd encoder;
-#N canvas 570 252 450 300 stepper 0;
-#X text 140 115 Not yet implemented;
+#N canvas 65 33 981 549 stepper 0;
+#X text 21 20 stepper config motor interface step enable pin1 pin2
+(pin3) (pin4) (enablePin) (invert);
+#X text 22 51 motor -> 0-9 (Supports up to 10 motors);
+#X text 20 68 interface -> 1 : Driver \, 2 : two wire \, 3 : three
+wire \, 4 : four wire;
+#X text 21 98 step size -> 0 : whole step \, 1 : half step \, 2 : quarter
+step etc. (1 / (2^step size));
+#X text 21 129 enable -> 0 : no enable pin \, 1 : has enable pin;
+#X text 21 147 pin1 -> if interface driver step pin else pin 1;
+#X text 21 165 pin2 -> if interface driver direction pin else pin 2
+;
+#X text 21 182 pin3 -> if interface is three wire or four wire \, optional
+;
+#X text 21 198 pin4 -> if interface is four wire \, optional;
+#X text 20 215 enable pin -> optional;
+#X text 19 233 invert -> 1 : invert pin 1 \, 2 : invert pin 2 \, 4
+: invert pin 3 \, 8 : invert pin 4 \, 16 : invert enable pin (for example
+inverting pin 1 \, pin 3 and enable pin send 1 + 4 + 16 = 21);
+#X msg 22 284 stepper config 0 0 4 1 2 3 4;
+#X msg 22 335 stepper zero 0;
+#X msg 22 384 stepper step 0 500;
+#X msg 483 39 stepper to 0 200;
+#X msg 483 88 stepper enable 0 1;
+#X msg 482 135 stepper stop 0;
+#X text 480 158 stepper position motor (report motor position);
+#X text 480 113 stepper stop motor (stop currently running motor);
+#X text 481 66 stepper enable motor state (0 : disable \, 1 : enable)
+;
+#X text 21 362 stepper step motor numOfSteps (signed 32-bit);
+#X text 481 17 stepper to motor absolutePosition (signed 32-bit);
+#X text 20 313 stepper zero motor (send motor to zero position);
+#X msg 482 180 stepper position 0;
+#X text 479 206 stepper limit motor lowerLimitPin lowerLimitState upperLimitPin
+upperLimitState (not yet implemented in firmata);
+#X msg 482 255 stepper limit 4 1 5 0;
+#X msg 482 353 stepper speed 0 60.75;
+#X msg 482 309 stepper acceleration 0 82.33;
+#X text 480 277 stepper acceleration motor accelerationStepsInSec (can
+be float);
+#X text 481 332 stepper speed motor maximumSpeed (can be float);
+#X text 221 425 Note about 32-bit values: pure-data using 32-bit floating
+point numbers and this type cannot represent every integer bigger than
+24-bit. It's possible to increase floating point precision but I think
+it's not required for most of the cases.;
 #X restore 317 351 pd stepper;
 #X text 410 210 Copyright Malik Enes Safak 2017-2020;
 #X text 410 289 for more information about protocol https://github.com/firmata/protocol
 ;
-#X connect 0 0 1 0;
-#X connect 0 1 24 0;
+#N canvas 1116 247 495 284 multiStepper 0;
+#X text 26 13 multistepper config group motor1 motor2 (motor3) (motor4)
+...;
+#X text 25 45 group -> group id. Up to 5 (0-4);
+#X msg 27 69 multistepper config 0 0 5 7 9;
+#X msg 27 153 multistepper to 0 200;
+#X text 26 99 multistepper to group position1 (position2) (position3)
+...;
+#X text 26 182 multistepper stop group;
+#X msg 27 203 multistepper stop 0;
+#X text 25 120 add position for each motor in the group. all motors
+will arrive desired positions at the same time;
+#X restore 316 381 pd multiStepper;
+#N canvas 1190 197 676 642 onewire 0;
+#X text 25 16 onewire search;
+#X text 25 35 search all onewire devices connected to pin;
+#X msg 28 59 onewire search;
+#X text 26 94 onewire alarmed;
+#X text 26 114 search all alarmed onewire devices connected to pin
+;
+#X msg 28 137 onewire alarmed;
+#X text 26 169 onewire config pin power;
+#X text 26 187 power -> 0 : leave pin to high after write \, 1 : don't
+leave pin to high after write;
+#X msg 28 224 onewire config 5 0;
+#X text 26 254 onewire reset pin;
+#X msg 28 276 onewire reset 5;
+#X text 26 306 onewire skip pin;
+#X msg 28 328 onewire skip 5;
+#X text 26 358 onewire select pin addressByte0 addressByte1 addressByte2
+addressByte3 addressByte4 addressByte5 addressByte6 addressByte7;
+#X text 26 431 onewire read pin numOfBytes correlationID;
+#X msg 29 451 onewire read 5 12 1;
+#X text 26 478 onewire delay pin delay;
+#X msg 29 500 onewire delay 5 100;
+#X text 27 529 onewire write pin byte0 (byte1) (byte2) ...;
+#X msg 27 551 onewire write 5 2 7 82 64 122 192;
+#X msg 28 406 onewire select 5 12 224 62 16 5 155 8 105;
+#X restore 316 416 pd onewire;
+#X connect 0 0 24 0;
+#X connect 0 1 1 0;
 #X connect 1 0 0 1;
 #X connect 7 0 0 0;
 #X connect 9 0 11 0;

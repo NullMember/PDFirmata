@@ -1437,23 +1437,34 @@ void pdfirmata_onewire(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv)
         if(strcmp(cmdName, "select") == 0){
             if(argc > 2){
                 uint8_t pin = atom_getfloatarg(1, argc, argv);
-                uint64_t address = atom_getfloatarg(2, argc, argv);
+                uint8_t addr[8] = {
+                    atom_getfloatarg(2, argc, argv),
+                    atom_getfloatarg(3, argc, argv),
+                    atom_getfloatarg(4, argc, argv),
+                    atom_getfloatarg(5, argc, argv),
+                    atom_getfloatarg(6, argc, argv),
+                    atom_getfloatarg(7, argc, argv),
+                    atom_getfloatarg(8, argc, argv),
+                    atom_getfloatarg(9, argc, argv)
+                };
+                uint8_t * address = from7bit(addr, 8);
                 uint8_t buffer[14];
                 buffer[0] = 0xF0;
                 buffer[1] = 0x73;
                 buffer[2] = 0b00000100;
                 buffer[3] = pin & 0x7F;
-                buffer[4] = address & 0x7F;
-                buffer[5] = (address >> 7) & 0x7F;
-                buffer[6] = (address >> 14) & 0x7F;
-                buffer[7] = (address >> 21) & 0x7F;
-                buffer[8] = (address >> 28) & 0x7F;
-                buffer[9] = (address >> 35) & 0x7F;
-                buffer[10] = (address >> 42) & 0x7F;
-                buffer[11] = (address >> 49) & 0x7F;
-                buffer[12] = (address >> 56) & 0x7F;
+                buffer[4] = address[0];
+                buffer[5] = address[1];
+                buffer[6] = address[2];
+                buffer[7] = address[3];
+                buffer[8] = address[4];
+                buffer[9] = address[5];
+                buffer[10] = address[6];
+                buffer[11] = address[7];
+                buffer[12] = address[8];
                 buffer[13] = 0xF7;
                 writeBuffer(x, buffer, 14);
+                free(address);
             }
         }
         /* I assume correlationid is unique id represent which read command is returned with some value
@@ -1736,7 +1747,7 @@ void decSysex(t_pdfirmata * x){
         uint8_t port = x->buffer[i++] & 0x0F;
         t_atom buffer[4];
         char * stringBuffer = (char *)malloc((((x->rawCounter - 2) / 2) + 1) * sizeof(char));
-        SETSYMBOL(buffer, gensym("serialReplyString"));
+        SETSYMBOL(buffer, gensym("serial"));
         SETSYMBOL(buffer + 1, gensym("string"));
         SETSYMBOL(buffer + 2, gensym(serialPorts[port]));
         uint16_t counter = 0;
@@ -1823,6 +1834,7 @@ void decSysex(t_pdfirmata * x){
             }
             outlet_list(x->decOut, &s_symbol, resultLength + 3, buffer);
             free(buffer);
+            free(result);
         }
         
     }
