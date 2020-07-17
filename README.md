@@ -1,18 +1,17 @@
 # PDFirmata
 Firmata Client for Pure Data
 
-# Current state
-As of 06.2020 this external almost completely rewritten. Included pd-lib-builder and Makefile for compiling external without headaches. I hope I will release stable before 07.2020.
-
 # TODO
 
-- [Implement OneWire](https://github.com/firmata/protocol/blob/master/onewire.md)
 - [Implement Scheduler](https://github.com/firmata/protocol/blob/master/scheduler.md)
-- [Implement custom floating point format used by accelstepper](https://github.com/firmata/protocol/blob/master/accelStepperFirmata.md#accelstepperfirmatas-custom-float-format)
 
 # Description
 
-PDFirmata is Firmata Client for Miller S. Puckette's Pure Data. PDFirmata supports most of features of Firmata protocol. Up to 4 software and 4 hardware UART, 1 I2C, 5 Encoder, 6 Stepper. Also Servos, Digital and Analog IO, PWM Output and so.
+PDFirmata is Firmata Client for Miller S. Puckette's Pure Data. PDFirmata supports all features of Firmata protocol except Scheduler.
+
+## Compatibility
+
+Current PDFirmata client is compatible with Firmata protocol 2.6.0
 
 # Arduino Instructions:
 
