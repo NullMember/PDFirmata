@@ -1,13 +1,13 @@
-#N canvas 753 189 825 537 12;
-#X obj 67 224 pdfirmata;
-#X obj 151 224 comport 1 57600;
-#X obj 114 350 pdfirmata;
-#X text 54 321 Command In;
-#X text 171 322 RAW In;
-#X text 173 373 RAW Out;
-#X text 56 374 Response Out;
-#X obj 67 185 r firmatacmd;
-#N canvas 925 131 520 300 pinMode 0;
+#N canvas 76 186 677 465 12;
+#X obj 32 222 pdfirmata;
+#X obj 116 222 comport 1 57600;
+#X obj 79 348 pdfirmata;
+#X text 19 319 Command In;
+#X text 136 320 RAW In;
+#X text 138 371 RAW Out;
+#X text 21 372 Response Out;
+#X obj 32 183 r firmatacmd;
+#N canvas 265 151 520 300 pinMode 0;
 #X msg 27 35 pinMode 13 INPUT;
 #X msg 27 65 pinMode 13 OUTPUT;
 #X msg 27 98 pinMode 13 ANALOG;
@@ -33,24 +33,24 @@
 #X connect 9 0 12 0;
 #X connect 10 0 12 0;
 #X connect 11 0 12 0;
-#X restore 317 182 pd pinMode;
-#X msg 57 67 digitalWrite 13 0;
-#X msg 57 94 digitalWrite 13 1;
-#X obj 57 127 s firmatacmd;
-#X msg 225 92 analogWrite 11 \$1;
-#X obj 228 64 hsl 128 15 0 255 0 0 empty empty empty -2 -8 0 10 -262144
+#X restore 543 172 pd pinMode;
+#X msg 34 52 digitalWrite 13 0;
+#X msg 34 79 digitalWrite 13 1;
+#X obj 34 112 s firmatacmd;
+#X msg 202 77 analogWrite 11 \$1;
+#X obj 205 49 hsl 128 15 0 255 0 0 empty empty empty -2 -8 0 10 -262144
 -1 -1 0 1;
-#X obj 225 129 s firmatacmd;
-#X msg 404 92 analogIn 0 1;
-#X msg 404 66 analogIn 0 0;
-#X obj 404 133 s firmatacmd;
-#X text 47 40 digitalWrite PIN STATE;
-#X text 219 40 analogWrite PIN VALUE;
-#X text 389 40 analogIn PIN ENABLE?;
-#X msg 567 69 pinRead 13;
-#X text 565 40 pinRead PIN;
-#X obj 567 133 s firmatacmd;
-#X obj 67 256 print;
+#X obj 202 114 s firmatacmd;
+#X msg 381 77 analogIn 0 1;
+#X msg 381 51 analogIn 0 0;
+#X obj 381 118 s firmatacmd;
+#X text 24 25 digitalWrite PIN STATE;
+#X text 196 25 analogWrite PIN VALUE;
+#X text 366 25 analogIn PIN ENABLE?;
+#X msg 544 54 pinRead 13;
+#X text 542 25 pinRead PIN;
+#X obj 544 118 s firmatacmd;
+#X obj 32 254 print;
 #N canvas 1117 193 531 656 serial 0;
 #X msg 18 75 serial config HW0 115200 4 5;
 #X text 15 31 serial config PORT BAUD (RX) (TX);
@@ -79,7 +79,7 @@
 Each character takes 2 byte \, maximum character limit is (MAX_BUFFER
 - 5) / 2 Default value of the MAX_BUFFER is 64 byte https://github.com/arduino/ArduinoCore-avr/blob/3055c1efa3c6980c864f661e6c8cc5d5ac773af4/cores/arduino/HardwareSerial.h#L42
 ;
-#X restore 317 215 pd serial;
+#X restore 543 205 pd serial;
 #N canvas 1187 362 493 362 I2C 0;
 #X text 19 41 ADDRESS can be either 7-bit (< 128) or 10-bit (< 1024)
 ;
@@ -96,14 +96,14 @@ Continuously \, rw : Read Write;
 #X msg 23 243 I2C config 12 123 53 23;
 #X text 22 280 I2C delay DELAY;
 #X msg 23 306 I2C delay 100;
-#X restore 317 248 pd I2C;
+#X restore 543 238 pd I2C;
 #N canvas 1210 376 450 300 servo 0;
 #X text 29 28 servo config PIN MINPULSE MAXPULSE;
 #X msg 32 53 servo config 13 500 2500;
 #X text 28 101 servo write PIN VALUE;
 #X msg 30 142 servo write 13 90;
 #X text 27 119 if VALUE < 500 it's angle otherwise pulse duration;
-#X restore 317 281 pd servo;
+#X restore 543 271 pd servo;
 #N canvas 1081 301 451 360 encoder 0;
 #X msg 25 58 encoder attach 0 12 13;
 #X text 23 15 encoder attach ENCODER PINA PINB;
@@ -118,7 +118,7 @@ Continuously \, rw : Read Write;
 #X msg 23 243 encoder report 0;
 #X text 21 268 encoder detach ENCODER;
 #X msg 23 289 encoder detach 0;
-#X restore 317 317 pd encoder;
+#X restore 543 307 pd encoder;
 #N canvas 65 33 981 549 stepper 0;
 #X text 21 20 stepper config motor interface step enable pin1 pin2
 (pin3) (pin4) (enablePin) (invert);
@@ -164,9 +164,9 @@ be float);
 point numbers and this type cannot represent every integer bigger than
 24-bit. It's possible to increase floating point precision but I think
 it's not required for most of the cases.;
-#X restore 317 351 pd stepper;
-#X text 410 210 Copyright Malik Enes Safak 2017-2020;
-#X text 410 289 for more information about protocol https://github.com/firmata/protocol
+#X restore 543 341 pd stepper;
+#X text 248 332 Copyright Malik Enes Safak 2017-2020;
+#X text 252 395 for more information about protocol https://github.com/firmata/protocol
 ;
 #N canvas 1116 247 495 284 multiStepper 0;
 #X text 26 13 multistepper config group motor1 motor2 (motor3) (motor4)
@@ -180,7 +180,7 @@ it's not required for most of the cases.;
 #X msg 27 203 multistepper stop 0;
 #X text 25 120 add position for each motor in the group. all motors
 will arrive desired positions at the same time;
-#X restore 316 381 pd multiStepper;
+#X restore 542 371 pd multiStepper;
 #N canvas 1190 197 676 642 onewire 0;
 #X text 25 16 onewire search;
 #X text 25 35 search all onewire devices connected to pin;
@@ -206,7 +206,17 @@ addressByte3 addressByte4 addressByte5 addressByte6 addressByte7;
 #X text 27 529 onewire write pin byte0 (byte1) (byte2) ...;
 #X msg 27 551 onewire write 5 2 7 82 64 122 192;
 #X msg 28 406 onewire select 5 12 224 62 16 5 155 8 105;
-#X restore 316 416 pd onewire;
+#X restore 542 406 pd onewire;
+#X msg 254 163 version;
+#X msg 254 186 firmware;
+#X msg 254 209 capability;
+#X msg 254 232 sampling 30;
+#X obj 254 280 s firmatacmd;
+#X text 237 362 https://github.com/NullMember/PDFirmata;
+#X msg 380 183 digitalIn 0 1;
+#X obj 380 234 s firmatacmd;
+#X text 367 153 digitalIn PORT ENABLE?;
+#X msg 254 256 analogMap;
 #X connect 0 0 24 0;
 #X connect 0 1 1 0;
 #X connect 1 0 0 1;
@@ -218,3 +228,9 @@ addressByte3 addressByte4 addressByte5 addressByte6 addressByte7;
 #X connect 15 0 17 0;
 #X connect 16 0 17 0;
 #X connect 21 0 23 0;
+#X connect 34 0 38 0;
+#X connect 35 0 38 0;
+#X connect 36 0 38 0;
+#X connect 37 0 38 0;
+#X connect 40 0 41 0;
+#X connect 43 0 38 0;
