@@ -846,6 +846,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 }
                 buffer[argc + 2] = 0xF7;
                 writeBuffer(x, buffer, argc + 3);
+                free(buffer);
             }
         }
     }
@@ -1351,6 +1352,7 @@ void pdfirmata_multistepper(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * 
                 buffer[(positionCount * 5) + 4] = 0xF7;
                 writeBuffer(x, buffer, ((positionCount * 5) + 5));
                 free(buffer);
+                free(positions);
             }
         }
         /* multistep stop group */
@@ -1739,6 +1741,7 @@ void decSysex(t_pdfirmata * x){
             i++;
         }
         outlet_list(x->decOut, &s_symbol, (((x->rawCounter - 2) / 2) + 2), buffer);
+        free(buffer);
     }
     /* serial read response converted to string */
     if(x->buffer[0] == 0x60){
