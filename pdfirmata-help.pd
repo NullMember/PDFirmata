@@ -1,4 +1,4 @@
-#N canvas 76 186 677 465 12;
+#N canvas 563 220 677 465 12;
 #X obj 32 222 pdfirmata;
 #X obj 116 222 comport 1 57600;
 #X obj 79 348 pdfirmata;
@@ -47,8 +47,6 @@
 #X text 24 25 digitalWrite PIN STATE;
 #X text 196 25 analogWrite PIN VALUE;
 #X text 366 25 analogIn PIN ENABLE?;
-#X msg 544 54 pinRead 13;
-#X text 542 25 pinRead PIN;
 #X obj 544 118 s firmatacmd;
 #X obj 32 254 print;
 #N canvas 1117 193 531 656 serial 0;
@@ -84,8 +82,6 @@ Each character takes 2 byte \, maximum character limit is (MAX_BUFFER
 #X text 19 41 ADDRESS can be either 7-bit (< 128) or 10-bit (< 1024)
 ;
 #X text 19 58 AUTORESTART -> 0 : Stop \, 1 : Restart;
-#X text 19 75 READMODE -> wr : Write \, ro : Read Only \, rc : Read
-Continuously \, rw : Read Write;
 #X msg 23 111 I2C rw 36 0 wr 42 75 89 123;
 #X text 18 23 I2C rw ADDRESS AUTORESTART RWMODE BYTE0 (BYTE1) (BYTE2)
 ...;
@@ -96,6 +92,8 @@ Continuously \, rw : Read Write;
 #X msg 23 243 I2C config 12 123 53 23;
 #X text 22 280 I2C delay DELAY;
 #X msg 23 306 I2C delay 100;
+#X text 19 75 READMODE -> wr : Write \, ro : Read Only \, rc : Read
+Continuously \, sr : Stop Reading;
 #X restore 543 238 pd I2C;
 #N canvas 1210 376 450 300 servo 0;
 #X text 29 28 servo config PIN MINPULSE MAXPULSE;
@@ -165,7 +163,6 @@ point numbers and this type cannot represent every integer bigger than
 24-bit. It's possible to increase floating point precision but I think
 it's not required for most of the cases.;
 #X restore 543 341 pd stepper;
-#X text 248 332 Copyright Malik Enes Safak 2017-2020;
 #X text 252 395 for more information about protocol https://github.com/firmata/protocol
 ;
 #N canvas 1116 247 495 284 multiStepper 0;
@@ -217,7 +214,101 @@ addressByte3 addressByte4 addressByte5 addressByte6 addressByte7;
 #X obj 380 234 s firmatacmd;
 #X text 367 153 digitalIn PORT ENABLE?;
 #X msg 254 256 analogMap;
-#X connect 0 0 24 0;
+#X msg 544 54 pinState 13;
+#X text 542 25 pinState PIN;
+#X obj 80 255 s firmataResponse;
+#N canvas 98 153 450 531 digitalInResponse 0;
+#X obj 33 22 r firmataResponse;
+#X obj 33 56 route digitalIn;
+#X obj 33 80 route 0;
+#X text 156 56 digitalIn response;
+#X text 158 83 Port 0;
+#X obj 33 184 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 33 143 & 1;
+#X obj 85 119 >> 1;
+#X obj 85 143 & 1;
+#X obj 139 143 & 1;
+#X obj 191 143 & 1;
+#X obj 241 143 & 1;
+#X obj 293 143 & 1;
+#X obj 347 143 & 1;
+#X obj 399 143 & 1;
+#X obj 33 119 >> 0;
+#X obj 139 119 >> 2;
+#X obj 191 119 >> 3;
+#X obj 241 119 >> 4;
+#X obj 293 119 >> 5;
+#X obj 347 119 >> 6;
+#X obj 399 119 >> 7;
+#X obj 85 184 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 139 184 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 191 184 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 241 185 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 293 185 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 347 185 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 399 185 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X text 29 208 Pin 0;
+#X text 83 208 Pin 1;
+#X text 136 208 Pin 2;
+#X text 190 208 Pin 3;
+#X text 238 208 Pin 4;
+#X text 292 208 Pin 5;
+#X text 345 208 Pin 6;
+#X text 399 208 Pin 7;
+#X obj 33 277 r firmataResponse;
+#X obj 33 301 route digitalIn;
+#X obj 33 325 route 0;
+#X obj 33 375 >>;
+#X floatatom 101 357 5 0 7 0 - - -;
+#X obj 33 399 & 1;
+#X obj 33 429 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X text 152 301 digitalIn response;
+#X text 154 328 Port 0;
+#X text 154 357 Pin;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 2 0 7 0;
+#X connect 2 0 15 0;
+#X connect 2 0 17 0;
+#X connect 2 0 18 0;
+#X connect 2 0 19 0;
+#X connect 2 0 20 0;
+#X connect 2 0 21 0;
+#X connect 6 0 5 0;
+#X connect 7 0 8 0;
+#X connect 8 0 22 0;
+#X connect 9 0 23 0;
+#X connect 10 0 24 0;
+#X connect 11 0 25 0;
+#X connect 12 0 26 0;
+#X connect 13 0 27 0;
+#X connect 14 0 28 0;
+#X connect 15 0 6 0;
+#X connect 16 0 9 0;
+#X connect 17 0 10 0;
+#X connect 18 0 11 0;
+#X connect 19 0 12 0;
+#X connect 20 0 13 0;
+#X connect 21 0 14 0;
+#X connect 37 0 38 0;
+#X connect 38 0 39 0;
+#X connect 39 0 40 0;
+#X connect 40 0 42 0;
+#X connect 41 0 40 1;
+#X connect 42 0 43 0;
+#X restore 379 268 pd digitalInResponse;
+#X text 248 332 Copyright Malik Enes Safak 2017-2021;
+#X connect 0 0 22 0;
+#X connect 0 0 43 0;
 #X connect 0 1 1 0;
 #X connect 1 0 0 1;
 #X connect 7 0 0 0;
@@ -227,10 +318,10 @@ addressByte3 addressByte4 addressByte5 addressByte6 addressByte7;
 #X connect 13 0 12 0;
 #X connect 15 0 17 0;
 #X connect 16 0 17 0;
-#X connect 21 0 23 0;
-#X connect 34 0 38 0;
-#X connect 35 0 38 0;
-#X connect 36 0 38 0;
+#X connect 31 0 35 0;
+#X connect 32 0 35 0;
+#X connect 33 0 35 0;
+#X connect 34 0 35 0;
 #X connect 37 0 38 0;
-#X connect 40 0 41 0;
-#X connect 43 0 38 0;
+#X connect 40 0 35 0;
+#X connect 41 0 21 0;
