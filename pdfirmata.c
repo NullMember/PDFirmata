@@ -786,7 +786,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
         const char * cmdName = atom_getsymbolarg(0, argc, argv)->s_name;
         /* I2C rw ADDRESS AUTORESTART RWMODE ARG0 (ARG1) (ARG2) (...) */
         /* AUTORESTART = 0 : Stop, 1 : Restart */
-        /* RWMODE = wr : Write, ro : Read Only, rc : Read Continuously, rw : Read Write */
+        /* RWMODE = wr : Write, ro : Read Only, rc : Read Continuously, sr : Stop Reading */
         if(strcmp(cmdName, "rw") == 0){
             if(argc > 4){
                 int addr = atom_getfloatarg(1, argc, argv);
@@ -796,7 +796,7 @@ void pdfirmata_I2C(t_pdfirmata * x, t_symbol * s, t_int argc, t_atom * argv){
                 if(strcmp(rwMode, "wr") == 0){ rwModeInt = 0; }
                 else if(strcmp(rwMode, "ro") == 0){ rwModeInt = 1; }
                 else if(strcmp(rwMode, "rc") == 0){ rwModeInt = 2; }
-                else if(strcmp(rwMode, "rw") == 0){ rwModeInt = 3; }
+                else if(strcmp(rwMode, "sr") == 0){ rwModeInt = 3; }
                 else{ error("Unknown rw mode"); return; }
                 int LSB = addr & 0x7F;
                 int MSB = 0;
